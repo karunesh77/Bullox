@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  PRO
+  EXPERT
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String?
+  avatarUrl    String?
+  role         Role     @default(USER)
+  provider     String?
+  providerId   String?
+  isVerified   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  subscription Subscription?
+  watchlists   Watchlist[]
+  alerts       Alert[]
+  copyTrades   CopyTrade[]
+  trader       Trader?
+}
+
+model Subscription {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  razorpaySubId    String?
+  planId           String
+  status           String
+  currentPeriodEnd DateTime
+  createdAt        DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Watchlist {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  symbols   String[]
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Alert {
+  id          String    @id @default(cuid())
+  userId      String
+  symbol      String
+  condition   String
+  targetPrice Float
+  triggered   Boolean   @default(false)
+  triggeredAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Trader {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  bio         String?
+  winRate     Float   @default(0)
+  totalReturn Float   @default(0)
+  followers   Int     @default(0)
+  isPublic    Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CopyTrade {
+  id              String   @id @default(cuid())
+  userId          String
+  traderId        String
+  allocatedAmount Float
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

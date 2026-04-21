@@ -1,0 +1,632 @@
+{
+  "info": {
+    "name": "Bullox API",
+    "description": "Complete API collection for Bullox financial platform backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:4000/api/v1" },
+    { "key": "access_token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:4000/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"username\": \"testuser\",\n  \"password\": \"Test1234\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data?.accessToken) {",
+                  "  pm.collectionVariables.set('access_token', res.data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Test1234\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/auth/me",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/refresh",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"YOUR_REFRESH_TOKEN\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/logout",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Market",
+      "item": [
+        {
+          "name": "Search Symbol",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/market/search?q=AAPL",
+              "query": [{ "key": "q", "value": "AAPL" }],
+              "host": ["{{base_url}}/market/search"]
+            }
+          }
+        },
+        {
+          "name": "Get Single Quote",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/market/quote/AAPL"
+          }
+        },
+        {
+          "name": "Get Bulk Quotes",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/market/quotes?symbols=AAPL,TSLA,NVDA",
+              "query": [{ "key": "symbols", "value": "AAPL,TSLA,NVDA" }],
+              "host": ["{{base_url}}/market/quotes"]
+            }
+          }
+        },
+        {
+          "name": "Get Candles",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/market/candles/AAPL?interval=D",
+              "query": [{ "key": "interval", "value": "D" }],
+              "host": ["{{base_url}}/market/candles/AAPL"]
+            }
+          }
+        },
+        {
+          "name": "Top Crypto",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/market/crypto"
+          }
+        },
+        {
+          "name": "Market Movers (Gainers)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/market/movers?type=gainers",
+              "query": [{ "key": "type", "value": "gainers" }],
+              "host": ["{{base_url}}/market/movers"]
+            }
+          }
+        },
+        {
+          "name": "Market Movers (Losers)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/market/movers?type=losers",
+              "query": [{ "key": "type", "value": "losers" }],
+              "host": ["{{base_url}}/market/movers"]
+            }
+          }
+        },
+        {
+          "name": "Crypto Quote (BTC)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/market/quote/BTCUSDT"
+          }
+        }
+      ]
+    },
+    {
+      "name": "News",
+      "item": [
+        {
+          "name": "Latest News",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/news?page=1&limit=20",
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "category", "value": "crypto", "disabled": true }
+              ],
+              "host": ["{{base_url}}/news"]
+            }
+          }
+        },
+        {
+          "name": "Trending News",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/news/trending"
+          }
+        },
+        {
+          "name": "News by Symbol",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/news/symbol/AAPL"
+          }
+        },
+        {
+          "name": "News by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/news/MONGO_OBJECT_ID_HERE"
+          }
+        },
+        {
+          "name": "Trigger News Sync",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/news/sync"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Calendar",
+      "item": [
+        {
+          "name": "Calendar Events",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/calendar?from=2026-04-21&to=2026-04-28&country=US&impact=high",
+              "query": [
+                { "key": "from", "value": "2026-04-21" },
+                { "key": "to", "value": "2026-04-28" },
+                { "key": "country", "value": "US" },
+                { "key": "impact", "value": "high" }
+              ],
+              "host": ["{{base_url}}/calendar"]
+            }
+          }
+        },
+        {
+          "name": "Today's Events",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/calendar/today"
+          }
+        },
+        {
+          "name": "High Impact Events",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/calendar/high-impact"
+          }
+        },
+        {
+          "name": "Supported Countries",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/calendar/countries"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Alerts",
+      "item": [
+        {
+          "name": "Create Alert",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/alerts",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"AAPL\",\n  \"condition\": \"above\",\n  \"targetPrice\": 200\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Alert (Below)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/alerts",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTCUSDT\",\n  \"condition\": \"below\",\n  \"targetPrice\": 70000\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Alert (% Change)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/alerts",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"TSLA\",\n  \"condition\": \"percent_change\",\n  \"targetPrice\": 5\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Alerts",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/alerts",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "Get Alert History",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/alerts/history",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "Update Alert",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/alerts/ALERT_ID_HERE",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetPrice\": 210\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Alert",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/alerts/ALERT_ID_HERE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Watchlist",
+      "item": [
+        {
+          "name": "Create Watchlist",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/watchlists",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Tech Stocks\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Watchlists",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/watchlists",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "Get Watchlist by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/watchlists/WATCHLIST_ID_HERE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "Add Symbol",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/watchlists/WATCHLIST_ID_HERE/symbols",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"AAPL\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Remove Symbol",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/watchlists/WATCHLIST_ID_HERE/symbols/AAPL",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "Rename Watchlist",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/watchlists/WATCHLIST_ID_HERE/rename",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Renamed Watchlist\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Watchlist",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/watchlists/WATCHLIST_ID_HERE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Profile",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/users/me",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/users/me",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newusername\",\n  \"avatarUrl\": \"https://example.com/avatar.jpg\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/users/me/change-password",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Test1234\",\n  \"newPassword\": \"NewPass5678\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Public Profile",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/users/profile/testuser"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subscription",
+      "item": [
+        {
+          "name": "Get Plans",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/subscription/plans"
+          }
+        },
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/subscription/order",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"pro_monthly\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Verify Payment",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/subscription/verify",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"razorpay_order_id\": \"order_xxx\",\n  \"razorpay_payment_id\": \"pay_xxx\",\n  \"razorpay_signature\": \"signature_xxx\",\n  \"planId\": \"pro_monthly\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Subscription Status",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/subscription/status",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Copy Trading",
+      "item": [
+        {
+          "name": "List Public Traders",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/copytrading/traders?page=1&limit=20",
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ],
+              "host": ["{{base_url}}/copytrading/traders"]
+            }
+          }
+        },
+        {
+          "name": "Get Trader by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/copytrading/traders/TRADER_ID_HERE"
+          }
+        },
+        {
+          "name": "Become a Trader",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/copytrading/become-trader",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"10 years of forex and crypto trading experience\",\n  \"isPublic\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Get My Trader Profile",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/copytrading/my-trader-profile",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "Update Trader Profile",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/copytrading/my-trader-profile",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"Updated bio\",\n  \"isPublic\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Start Copying (PRO only)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/copytrading/copy",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"traderId\": \"TRADER_ID_HERE\",\n  \"allocatedAmount\": 50000\n}"
+            }
+          }
+        },
+        {
+          "name": "Stop Copying",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/copytrading/copy/COPY_TRADE_ID_HERE/stop",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "Get My Copy Trades",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/copytrading/my-copies",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        }
+      ]
+    }
+  ]
+}
