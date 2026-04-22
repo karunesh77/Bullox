@@ -16,12 +16,6 @@ import CopyTradingPage from '@/pages/CopyTradingPage';
 import ProfilePage from '@/pages/ProfilePage';
 import SubscriptionPage from '@/pages/SubscriptionPage';
 
-const ComingSoon = ({ name }: { name: string }) => (
-  <div className="flex items-center justify-center h-64">
-    <p className="text-gray-500">{name} — coming soon</p>
-  </div>
-);
-
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;

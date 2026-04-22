@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, TrendingUp, TrendingDown, Star, Shield, Zap, Award, ChevronDown, ChevronUp, UserCheck, UserPlus } from 'lucide-react';
+import { Users, Star, Shield, Zap, Award, ChevronDown, ChevronUp, UserCheck, UserPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Trader {

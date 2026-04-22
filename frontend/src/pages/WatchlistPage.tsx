@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   BookMarked, Plus, Trash2, TrendingUp, TrendingDown,
-  Search, X, Star, MoreHorizontal, Edit2, Check
+  Search, X, Star, Edit2, Check
 } from 'lucide-react';
 import api from '@/api/axios';
 import { cn } from '@/lib/utils';
