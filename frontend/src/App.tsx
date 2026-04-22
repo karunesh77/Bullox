@@ -23,14 +23,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  // Demo mode for Vercel preview (frontend-only demo, no backend)
+  // Demo mode for Vercel preview (frontend-only, no backend needed)
+  const setDemoMode = useAuthStore((s) => s.setDemoMode);
   useEffect(() => {
-    const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
-    if (isDemoMode) {
-      const setDemoMode = useAuthStore((s) => s.setDemoMode);
+    if (import.meta.env.VITE_DEMO_MODE === 'true') {
       setDemoMode();
     }
-  }, []);
+  }, [setDemoMode]);
 
   return (
     <BrowserRouter>
