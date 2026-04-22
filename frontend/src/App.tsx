@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 
@@ -23,14 +22,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  // Demo mode for Vercel preview (frontend-only, no backend needed)
-  const setDemoMode = useAuthStore((s) => s.setDemoMode);
-  useEffect(() => {
-    if (import.meta.env.VITE_DEMO_MODE === 'true') {
-      setDemoMode();
-    }
-  }, [setDemoMode]);
-
   return (
     <BrowserRouter>
       <Routes>

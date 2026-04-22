@@ -27,9 +27,9 @@ const DEMO_USER: User = {
 };
 
 export const useAuthStore = create<AuthStore>((set) => ({
-  user: null,
-  accessToken: localStorage.getItem('accessToken'),
-  isAuthenticated: !!localStorage.getItem('accessToken'),
+  user: DEMO_USER,
+  accessToken: 'demo-token-preview',
+  isAuthenticated: true,
 
   setAuth: (user, accessToken, refreshToken) => {
     localStorage.setItem('accessToken', accessToken);
