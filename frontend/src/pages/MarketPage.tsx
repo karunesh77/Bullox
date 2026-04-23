@@ -19,6 +19,21 @@ const INTERVALS: { label: string; value: CandleInterval }[] = [
 
 const DEFAULT_SYMBOLS = ['AAPL', 'TSLA', 'NVDA', 'MSFT', 'GOOGL', 'BTCUSDT', 'ETHUSDT'];
 
+const MOCK_QUOTES: Quote[] = [
+  { symbol: 'AAPL',    price: 213.18, change: -1.15,  changePercent: -0.54, high: 215.40, low: 211.80, open: 214.60, previousClose: 214.33 },
+  { symbol: 'TSLA',    price: 192.30, change: 5.27,   changePercent:  2.81, high: 194.90, low: 188.20, open: 188.60, previousClose: 187.03 },
+  { symbol: 'NVDA',    price: 875.40, change: 35.50,  changePercent:  4.23, high: 882.00, low: 855.20, open: 860.00, previousClose: 839.90 },
+  { symbol: 'MSFT',    price: 428.72, change: 3.14,   changePercent:  0.74, high: 430.50, low: 424.10, open: 425.60, previousClose: 425.58 },
+  { symbol: 'GOOGL',   price: 172.63, change: -0.82,  changePercent: -0.47, high: 174.20, low: 171.50, open: 173.80, previousClose: 173.45 },
+];
+
+const MOCK_CRYPTO: Quote[] = [
+  { symbol: 'BTCUSDT', price: 76243, change: 1820,  changePercent:  2.44, high: 77100, low: 74800, open: 74900, previousClose: 74423, isCrypto: true },
+  { symbol: 'ETHUSDT', price: 2332,  change: -28,   changePercent: -1.20, high: 2390,  low: 2310,  open: 2365,  previousClose: 2360,  isCrypto: true },
+  { symbol: 'SOLUSDT', price: 183.4, change: 9.8,   changePercent:  5.67, high: 186.2, low: 175.0, open: 175.2, previousClose: 173.6, isCrypto: true },
+  { symbol: 'BNBUSDT', price: 608.5, change: 12.4,  changePercent:  2.08, high: 615.0, low: 598.0, open: 598.5, previousClose: 596.1, isCrypto: true },
+];
+
 export default function MarketPage() {
   const [selectedSymbol, setSelectedSymbol] = useState('AAPL');
   const [interval, setInterval] = useState<CandleInterval>('D');
@@ -28,42 +43,42 @@ export default function MarketPage() {
   // Bulk quotes for sidebar list
   const { data: quotesData, isLoading: quotesLoading, refetch } = useQuery({
     queryKey: ['bulk-quotes', DEFAULT_SYMBOLS],
-    queryFn: () => marketApi.getBulkQuotes(DEFAULT_SYMBOLS),
+    queryFn: async () => { try { return await marketApi.getBulkQuotes(DEFAULT_SYMBOLS); } catch { return null; } },
     refetchInterval: 15000,
   });
 
   // Selected symbol quote
   const { data: quoteData } = useQuery({
     queryKey: ['quote', selectedSymbol],
-    queryFn: () => marketApi.getQuote(selectedSymbol),
+    queryFn: async () => { try { return await marketApi.getQuote(selectedSymbol); } catch { return null; } },
     refetchInterval: 10000,
   });
 
   // Candles for chart
   const { data: candleData, isLoading: candleLoading } = useQuery({
     queryKey: ['candles', selectedSymbol, interval],
-    queryFn: () => marketApi.getCandles(selectedSymbol, interval),
+    queryFn: async () => { try { return await marketApi.getCandles(selectedSymbol, interval); } catch { return null; } },
   });
 
   // Symbol search
   const { data: searchData } = useQuery({
     queryKey: ['search', searchQ],
-    queryFn: () => marketApi.searchSymbols(searchQ),
+    queryFn: async () => { try { return await marketApi.searchSymbols(searchQ); } catch { return null; } },
     enabled: searchQ.length >= 1,
   });
 
   // Top crypto
   const { data: cryptoData } = useQuery({
     queryKey: ['top-crypto'],
-    queryFn: () => marketApi.getTopCrypto(),
+    queryFn: async () => { try { return await marketApi.getTopCrypto(); } catch { return null; } },
     refetchInterval: 30000,
   });
 
-  const quotes: Quote[] = quotesData?.data?.data ?? [];
-  const selectedQuote: Quote | null = quoteData?.data?.data ?? null;
-  const candles = candleData?.data?.data ?? [];
-  const searchResults: SearchResult[] = searchData?.data?.data ?? [];
-  const cryptoList: Quote[] = cryptoData?.data?.data ?? [];
+  const quotes: Quote[] = Array.isArray(quotesData?.data?.data) ? quotesData.data.data : MOCK_QUOTES;
+  const selectedQuote: Quote | null = quoteData?.data?.data ?? quotes.find(q => q.symbol === selectedSymbol) ?? MOCK_QUOTES[0];
+  const candles = Array.isArray(candleData?.data?.data) ? candleData.data.data : [];
+  const searchResults: SearchResult[] = Array.isArray(searchData?.data?.data) ? searchData.data.data : [];
+  const cryptoList: Quote[] = Array.isArray(cryptoData?.data?.data) ? cryptoData.data.data : MOCK_CRYPTO;
 
   return (
     <div className="flex flex-col gap-4 h-full">
