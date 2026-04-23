@@ -1,6 +1,7 @@
 import { getRedis } from '../../config/redis';
-import { getFinnhubQuote, getFinnhubCandles, searchFinnhubSymbols, getMarketMovers } from './finnhub.client';
+import { getFinnhubQuote, searchFinnhubSymbols, getMarketMovers } from './finnhub.client';
 import { getCryptoQuote, getTopCrypto, getCryptoCandles } from './coingecko.client';
+import { getYahooCandles } from './yahoo.client';
 import { Quote, Candle, CandleInterval } from '../../types/market';
 
 const CRYPTO_SYMBOLS = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT', 'DOGEUSDT'];
@@ -60,12 +61,25 @@ export const getCandles = async (
   const cached = await getFromCache(cacheKey);
   if (cached) return cached;
 
-  const candles = isCrypto(symbol)
-    ? await getCryptoCandles(symbol)
-    : await getFinnhubCandles(symbol, interval, from, to);
+  let candles: Candle[] = [];
+
+  try {
+    if (isCrypto(symbol)) {
+      // Crypto: use CoinGecko
+      candles = await getCryptoCandles(symbol);
+    } else {
+      // Stocks: use Yahoo Finance (Finnhub free tier blocks candles)
+      candles = await getYahooCandles(symbol, interval, from, to);
+    }
+  } catch (error) {
+    console.error(`Error fetching candles for ${symbol}:`, error);
+    candles = [];
+  }
 
   // Cache candles for 60 seconds
-  await setCache(cacheKey, candles, 60);
+  if (candles.length > 0) {
+    await setCache(cacheKey, candles, 60);
+  }
 
   return candles;
 };
