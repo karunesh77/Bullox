@@ -76,7 +76,18 @@ export default function MarketPage() {
 
   const quotes: Quote[] = Array.isArray(quotesData?.data?.data) ? quotesData.data.data : MOCK_QUOTES;
   const selectedQuote: Quote | null = quoteData?.data?.data ?? quotes.find(q => q.symbol === selectedSymbol) ?? MOCK_QUOTES[0];
-  const candles = Array.isArray(candleData?.data?.data) ? candleData.data.data : [];
+
+  // Transform backend candles (timestamp) to frontend format (time)
+  const rawCandles = Array.isArray(candleData?.data?.data) ? candleData.data.data : [];
+  const candles = rawCandles.map((c: any) => ({
+    time: c.timestamp,
+    open: c.open,
+    high: c.high,
+    low: c.low,
+    close: c.close,
+    volume: c.volume,
+  }));
+
   const searchResults: SearchResult[] = Array.isArray(searchData?.data?.data) ? searchData.data.data : [];
   const cryptoList: Quote[] = Array.isArray(cryptoData?.data?.data) ? cryptoData.data.data : MOCK_CRYPTO;
 
