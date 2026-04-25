@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+:root {
+  --color-dark-bg: #1f1f2e;
+  --color-dark-card: #111827;
+  --color-dark-border: #2d3748;
+  --color-primary: #8871ff;
+  --color-success: #22c55e;
+  --color-danger: #ef4444;
+}
+
 @layer base {
   * {
     box-sizing: border-box;
@@ -7,14 +16,69 @@
     padding: 0;
   }
 
+  html {
+    background-color: #1f1f2e;
+    color: #f3f4f6;
+  }
+
   body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-color: #1f1f2e;
+    color: #f3f4f6;
   }
 
   #root {
     min-height: 100vh;
+    background-color: #1f1f2e;
+  }
+}
+
+@layer components {
+  /* Card styles */
+  .card {
+    @apply rounded-2xl border;
+    background-color: #111827;
+    border-color: #2d3748;
+  }
+
+  .card-hover {
+    @apply transition-all duration-200 cursor-pointer;
+  }
+
+  .card-hover:hover {
+    background-color: #1f2937;
+  }
+
+  /* Badge styles */
+  .badge-live,
+  .badge-buy {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold;
+    background-color: #065f46;
+    color: #22c55e;
+  }
+
+  .badge-sell {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold;
+    background-color: #7f1d1d;
+    color: #ef4444;
+  }
+
+  /* Text utilities */
+  .text-value {
+    @apply text-2xl font-bold;
+    color: #f3f4f6;
+  }
+
+  .text-change-positive {
+    @apply font-semibold;
+    color: #22c55e;
+  }
+
+  .text-change-negative {
+    @apply font-semibold;
+    color: #ef4444;
   }
 }
 

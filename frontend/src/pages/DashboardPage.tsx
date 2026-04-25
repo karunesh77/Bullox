@@ -2,91 +2,131 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import {
-  TrendingUp, TrendingDown, Newspaper,
-  ArrowRight, Activity, Flame, Crown
+  TrendingUp, TrendingDown, Newspaper, Activity, Flame, Crown, Eye, BarChart3
 } from 'lucide-react';
-import {
-  AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis
-} from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { cn } from '@/lib/utils';
 
-// Real-time mock data generator
+// Real-time mock price generator
 const generateMockPrice = (basePrice: number, volatility: number = 0.02): number => {
   const change = (Math.random() - 0.5) * volatility * basePrice;
   return Math.round((basePrice + change) * 100) / 100;
 };
 
 const basePortfolioData = [
-  { date: 'Apr 1',  value: 100000 },
-  { date: 'Apr 3',  value: 102400 },
-  { date: 'Apr 5',  value: 101200 },
-  { date: 'Apr 7',  value: 105800 },
-  { date: 'Apr 9',  value: 103600 },
-  { date: 'Apr 11', value: 108200 },
-  { date: 'Apr 13', value: 107400 },
-  { date: 'Apr 15', value: 112000 },
-  { date: 'Apr 17', value: 110500 },
-  { date: 'Apr 19', value: 115800 },
-  { date: 'Apr 21', value: 118400 },
+  { date: '12 AM', value: 100000 },
+  { date: '04 AM', value: 102400 },
+  { date: '08 AM', value: 101200 },
+  { date: '12 PM', value: 105800 },
+  { date: '04 PM', value: 103600 },
+  { date: '08 PM', value: 118400 },
 ];
 
 const basePortfolioAssets = [
-  { id: 'AAPL', symbol: 'AAPL', name: 'Apple Inc', qty: 10, buyPrice: 180.5, basePrice: 182.45, pnl: 19.5, allocation: 15.4 },
-  { id: 'MSFT', symbol: 'MSFT', name: 'Microsoft', qty: 5, buyPrice: 420, basePrice: 428.72, pnl: 43.6, allocation: 18.2 },
-  { id: 'NVDA', symbol: 'NVDA', name: 'Nvidia', qty: 2, buyPrice: 850, basePrice: 875.4, pnl: 50.8, allocation: 14.8 },
-  { id: 'TSLA', symbol: 'TSLA', name: 'Tesla', qty: 8, buyPrice: 190, basePrice: 192.3, pnl: 18.4, allocation: 13.0 },
-  { id: 'BTC', symbol: 'BTCUSDT', name: 'Bitcoin', qty: 0.5, buyPrice: 65000, basePrice: 68420, pnl: 1710, allocation: 23.1 },
+  { id: 'BTC', symbol: 'BTC', name: 'Bitcoin', qty: 0.35, buyPrice: 56200, basePrice: 67260.5, pnl: 3887.68, allocation: 19.68, change24h: 2.45 },
+  { id: 'ETH', symbol: 'ETH', name: 'Ethereum', qty: 2.15, buyPrice: 2850, basePrice: 3420.25, pnl: 1226.54, allocation: 20.02, change24h: 1.32 },
+  { id: 'SOL', symbol: 'SOL', name: 'Solana', qty: 10.25, buyPrice: 126.40, basePrice: 165.30, pnl: 398.73, allocation: 30.79, change24h: -1.23 },
+  { id: 'BNB', symbol: 'BNB', name: 'BNB', qty: 1.20, buyPrice: 520, basePrice: 615.40, pnl: 114.48, allocation: 18.35, change24h: 0.85 },
 ];
 
-const topMovers = [
-  { symbol: 'NVDA',    name: 'Nvidia Corp',  basePrice: 875.40,  change: '+4.23%', up: true },
-  { symbol: 'TSLA',    name: 'Tesla Inc',    basePrice: 192.30,  change: '+2.81%', up: true },
-  { symbol: 'SOLUSDT', name: 'Solana',       basePrice: 183.40,  change: '+5.67%', up: true },
-  { symbol: 'AAPL',    name: 'Apple Inc',    basePrice: 213.18,  change: '-0.54%', up: false },
-  { symbol: 'ETHUSDT', name: 'Ethereum',     basePrice: 2332,    change: '-1.20%', up: false },
+const signals = [
+  { symbol: 'BTCUSDT', asset: 'Bitcoin', signal: 'BUY', entry: 67250, target: 71500, stopLoss: 64200, confidence: 82, reason: 'Bullish breakout' },
+  { symbol: 'ETHUSDT', asset: 'Ethereum', signal: 'SELL', entry: 3420, target: 3120, stopLoss: 3680, confidence: 76, reason: 'Resistance rejection' },
+  { symbol: 'SOLUSDT', asset: 'Solana', signal: 'BUY', entry: 165.30, target: 178.60, stopLoss: 155.20, confidence: 71, reason: 'Support bounce' },
 ];
 
 const recentNews = [
-  { title: 'Fed signals rate cut in Q2 2026 as inflation cools', sentiment: 'BULLISH', source: 'Reuters', time: '15m ago' },
-  { title: 'NVIDIA reports record Q4 revenue, AI chip demand soars', sentiment: 'BULLISH', source: 'Bloomberg', time: '45m ago' },
-  { title: 'Tesla shares drop on disappointing delivery numbers', sentiment: 'BEARISH', source: 'CNBC', time: '2h ago' },
+  { title: 'Bitcoin ETF sees $200M inflow as market sentiment turns positive', sentiment: 'BULLISH', source: 'CoinDesk', time: '2m ago' },
+  { title: 'Ethereum upgrades show positive impact on network performance', sentiment: 'BULLISH', source: 'Crypto News', time: '1h ago' },
+  { title: 'Solana ecosystem growth continues with new projects launching', sentiment: 'BULLISH', source: 'Blockworks', time: '1h ago' },
 ];
 
-const upcomingEvents = [
-  { country: '🇺🇸', title: 'Fed Interest Rate Decision', time: '2h' },
-  { country: '🇪🇺', title: 'ECB Monetary Policy', time: '5h' },
-  { country: '🇬🇧', title: 'UK Unemployment Data', time: '8h' },
-];
-
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 17) return 'Good afternoon';
-  return 'Good evening';
-}
-
-const CustomTooltip = ({ active, payload }: any) => {
+function CustomTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs shadow-lg">
-      <p className="text-gray-600 mb-0.5">{payload[0].payload.date}</p>
-      <p className="text-blue-600 font-semibold">₹{payload[0].value.toLocaleString('en-IN')}</p>
+    <div className="bg-dark-card border border-dark-border rounded-lg px-3 py-2 text-xs shadow-lg">
+      <p className="text-dark-secondary mb-0.5">{payload[0].payload.date}</p>
+      <p className="text-primary font-semibold">${payload[0].value.toLocaleString()}</p>
     </div>
   );
-};
+}
+
+function StatCard({ label, value, change, positive, icon }: any) {
+  return (
+    <div className="card card-hover p-5 flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <p className="text-dark-secondary text-sm font-semibold uppercase tracking-wider">{label}</p>
+        <div className={cn('p-2 rounded-lg', positive ? 'bg-green-900/30' : 'bg-red-900/30')}>
+          {icon}
+        </div>
+      </div>
+      <p className="text-value text-white">{value}</p>
+      {change && (
+        <p className={cn('text-sm font-semibold flex items-center gap-1', positive ? 'text-success' : 'text-danger')}>
+          {positive ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+          {positive ? '+' : ''}{change}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function SignalCard({ signal }: any) {
+  const isLong = signal.signal === 'BUY';
+
+  return (
+    <div className="card card-hover p-4">
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <p className="text-base font-bold text-dark-primary">{signal.symbol}</p>
+            <span className={cn('badge text-[10px] font-bold px-2 py-1 rounded-lg',
+              isLong ? 'badge-buy' : 'badge-sell'
+            )}>
+              {signal.signal}
+            </span>
+          </div>
+          <p className="text-xs text-dark-secondary">{signal.reason}</p>
+        </div>
+        <p className="text-xs font-bold text-primary">{signal.confidence}%</p>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2 text-xs">
+        <div className="bg-dark-tertiary rounded p-2">
+          <p className="text-dark-secondary mb-1">Entry</p>
+          <p className="font-bold text-dark-primary">${signal.entry.toLocaleString()}</p>
+        </div>
+        <div className="bg-green-900/20 rounded p-2">
+          <p className="text-dark-secondary mb-1">Target</p>
+          <p className="font-bold text-success">${signal.target.toLocaleString()}</p>
+        </div>
+        <div className="bg-red-900/20 rounded p-2">
+          <p className="text-dark-secondary mb-1">Stop Loss</p>
+          <p className="font-bold text-danger">${signal.stopLoss.toLocaleString()}</p>
+        </div>
+      </div>
+
+      {/* Confidence bar */}
+      <div className="mt-3 h-1.5 bg-dark-tertiary rounded-full overflow-hidden">
+        <div
+          className={cn('h-full', isLong ? 'bg-success' : 'bg-danger')}
+          style={{ width: `${signal.confidence}%` }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
   const isPro = user?.role === 'PRO' || user?.role === 'EXPERT';
 
-  // Real-time state
-  const [topMoversPrices, setTopMoversPrices] = useState(topMovers.map(m => ({ ...m, price: m.basePrice })));
+  const [topMoversPrices, setTopMoversPrices] = useState(basePortfolioAssets.map(a => ({ symbol: a.symbol, name: a.name, basePrice: a.basePrice, price: a.basePrice, change: a.change24h.toFixed(2), up: a.change24h >= 0 })));
   const [totalValue, setTotalValue] = useState(118400);
 
   // Real-time updates every 3 seconds
   useEffect(() => {
-    const interval = setInterval(() => {
-      // Update total portfolio value
+    const intervalId = setInterval(() => {
       const updated = basePortfolioAssets.map(asset => ({
         ...asset,
         currentPrice: generateMockPrice(asset.basePrice, 0.015),
@@ -94,198 +134,258 @@ export default function DashboardPage() {
       const newTotal = updated.reduce((sum, a) => sum + (a.currentPrice * a.qty), 0);
       setTotalValue(newTotal);
 
-      // Update top movers
-      const updatedMovers = topMovers.map(m => ({
-        ...m,
-        price: generateMockPrice(m.basePrice, 0.02),
+      const updatedMovers = basePortfolioAssets.map(a => ({
+        symbol: a.symbol,
+        name: a.name,
+        basePrice: a.basePrice,
+        price: generateMockPrice(a.basePrice, 0.02),
+        change: a.change24h.toFixed(2),
+        up: a.change24h >= 0,
       }));
       setTopMoversPrices(updatedMovers);
     }, 3000);
 
-    return () => clearInterval(interval);
+    return () => clearInterval(intervalId);
   }, []);
 
-  const invested    = 100000;
-  const pnl         = totalValue - invested;
-  const pnlPct      = ((pnl / invested) * 100).toFixed(2);
-  const isUp        = pnl >= 0;
+  const invested = 100000;
+  const pnl = totalValue - invested;
+  const pnlPct = ((pnl / invested) * 100).toFixed(2);
+  const isUp = pnl >= 0;
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-slate-50 via-white to-blue-50">
-      {/* Header */}
-      <div className="px-6 py-6 border-b border-gray-200 bg-white">
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen p-6" style={{ backgroundColor: '#1f1f2e' }}>
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              {getGreeting()}, {user?.username ?? 'Trader'} 👋
-            </h1>
-            <p className="text-gray-500 text-sm mt-2">
-              {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-            </p>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-4xl font-bold text-dark-primary">Good morning, John! 👋</h1>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-green-900/30 text-success text-xs font-bold">
+                <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                LIVE
+              </span>
+            </div>
+            <p className="text-dark-secondary">Track your portfolio & follow smart trading signals in real-time.</p>
           </div>
-          {!isPro && (
-            <Link
-              to="/subscription"
-              className="flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-white text-sm font-bold hover:shadow-lg transition-all shadow-md"
-            >
-              <Crown size={16} />
-              Upgrade to Pro
-              <ArrowRight size={14} />
-            </Link>
-          )}
+          <div className="flex items-center gap-3">
+            {!isPro && (
+              <Link
+                to="/subscription"
+                className="flex items-center gap-2 px-5 py-3 rounded-xl bg-primary hover:bg-primary-dark text-white text-sm font-bold transition-all"
+              >
+                <Crown size={16} />
+                Upgrade to Pro
+              </Link>
+            )}
+            <button className="p-3 card hover:bg-dark-tertiary text-dark-secondary hover:text-dark-primary transition-all">
+              <Eye size={20} />
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Main content */}
-      <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-slate-50 via-white to-blue-50">
-        <div className="max-w-7xl">
-          {/* Quick Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-            {[
-              { label: 'Portfolio Value', value: `₹${totalValue.toLocaleString('en-IN')}`, sub: isUp ? `+₹${pnl.toLocaleString('en-IN')} (${pnlPct}%)` : `-₹${Math.abs(pnl).toLocaleString('en-IN')} (${pnlPct}%)`, icon: '📊', gradient: 'from-blue-500 to-cyan-500', light: 'from-blue-50 to-cyan-50' },
-              { label: 'Watchlists', value: '2', sub: '37 symbols', icon: '⭐', gradient: 'from-purple-500 to-pink-500', light: 'from-purple-50 to-pink-50' },
-              { label: 'Active Alerts', value: '4', sub: '2 near target', icon: '🔔', gradient: 'from-orange-500 to-red-500', light: 'from-orange-50 to-red-50' },
-              { label: "Today's P&L", value: '+1.8%', sub: '+₹1,800', icon: '📈', gradient: 'from-green-500 to-emerald-500', light: 'from-green-50 to-emerald-50' },
-            ].map((stat) => (
-              <div key={stat.label} className={cn('rounded-2xl p-5 border border-gray-200 bg-gradient-to-br', stat.light, 'shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all')}>
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs text-gray-600 uppercase tracking-wider font-bold">{stat.label}</p>
-                  <span className="text-2xl">{stat.icon}</span>
-                </div>
-                <p className={cn('text-2xl font-bold mb-2 bg-gradient-to-r', stat.gradient, 'bg-clip-text text-transparent')}>{stat.value}</p>
-                <p className="text-xs text-gray-600">{stat.sub}</p>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <StatCard
+            label="Portfolio Value"
+            value={`$${totalValue.toLocaleString('en-US', { maximumFractionDigits: 2 })}`}
+            change={`${pnlPct}%`}
+            positive={isUp}
+            icon={<BarChart3 size={20} className={isUp ? 'text-success' : 'text-danger'} />}
+          />
+          <StatCard
+            label="Today's P&L"
+            value={`$${Math.abs(pnl).toLocaleString('en-US', { maximumFractionDigits: 2 })}`}
+            change={`${pnlPct}%`}
+            positive={isUp}
+            icon={<TrendingUp size={20} className={isUp ? 'text-success' : 'text-danger'} />}
+          />
+          <StatCard
+            label="Total Profit"
+            value="$5,430.20"
+            change="28.12%"
+            positive={true}
+            icon={<Activity size={20} className="text-success" />}
+          />
+          <StatCard
+            label="Win Rate"
+            value="68.6%"
+            change=""
+            positive={true}
+            icon={<div className="w-8 h-8 rounded-full border-2 border-success" />}
+          />
+        </div>
+
+        {/* Main content grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Portfolio Chart - spans 2 columns */}
+          <div className="lg:col-span-2 card p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <p className="text-dark-secondary text-sm font-semibold mb-2">Portfolio Performance</p>
+                <p className="text-4xl font-bold text-dark-primary">${totalValue.toLocaleString('en-US', { maximumFractionDigits: 2 })}</p>
               </div>
-            ))}
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-900/30">
+                <Activity size={14} className="text-success animate-pulse" />
+                <span className="text-xs text-success font-bold">LIVE</span>
+              </div>
+            </div>
+
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={basePortfolioData}>
+                <defs>
+                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#8871ff" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#8871ff" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="date" stroke="#6b7280" style={{ fontSize: '12px' }} />
+                <YAxis hide domain={['auto', 'auto']} />
+                <Tooltip content={<CustomTooltip />} />
+                <Area type="monotone" dataKey="value" stroke="#8871ff" strokeWidth={2.5} fill="url(#colorValue)" dot={false} />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
 
-          {/* Portfolio Chart */}
-          <div className="mb-8 rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs text-gray-600 uppercase tracking-wider font-bold mb-2">Portfolio Performance</p>
-                  <div className="flex items-baseline gap-4">
-                    <p className="text-4xl font-bold text-gray-900">₹{totalValue.toLocaleString('en-IN')}</p>
-                    <div className={cn('flex items-center gap-1 px-3 py-1 rounded-lg font-semibold text-sm', isUp ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700')}>
-                      {isUp ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-                      <span>{isUp ? '+' : '-'}{pnlPct}%</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-green-100 to-emerald-100 border border-green-300">
-                  <Activity size={14} className="text-green-600 animate-pulse" />
-                  <span className="text-xs text-green-700 font-bold">LIVE</span>
-                </div>
-              </div>
+          {/* Trending Signals */}
+          <div className="card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-dark-primary flex items-center gap-2">
+                <Flame size={16} className="text-warning" />
+                Trending Signals
+              </h3>
+              <Link to="/signals" className="text-primary text-xs font-bold hover:text-primary-light">View All</Link>
             </div>
-            <div className="p-6 h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={basePortfolioData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-                  <defs>
-                    <linearGradient id="portfolioGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%"   stopColor="#3b82f6" stopOpacity={0.2} />
-                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="date" tick={{ fill: '#9ca3af', fontSize: 12 }} tickLine={false} axisLine={false} interval={2} />
-                  <YAxis hide domain={['auto', 'auto']} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2.5} fill="url(#portfolioGrad)" dot={false} activeDot={{ r: 6, fill: '#3b82f6', strokeWidth: 0 }} />
-                </AreaChart>
-              </ResponsiveContainer>
+
+            <div className="space-y-3">
+              {signals.map((signal, i) => (
+                <SignalCard key={i} signal={signal} />
+              ))}
             </div>
           </div>
+        </div>
 
-          {/* Data Sections Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            {/* Top Movers */}
-            <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-              <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
-                <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-green-200">
-                    <TrendingUp size={16} className="text-green-700" />
-                  </div>
-                  Top Movers
-                </h3>
-              </div>
-              <div className="divide-y divide-gray-100">
-                {topMoversPrices.map((m) => (
-                  <Link key={m.symbol} to="/market"
-                    className="flex items-center justify-between px-6 py-4 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 transition-all"
-                  >
-                    <div>
-                      <p className="text-sm font-bold text-gray-900">{m.symbol}</p>
-                      <p className="text-xs text-gray-600 mt-1">{m.name}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-gray-900">${m.price.toFixed(2)}</p>
-                      <p className={cn('text-sm font-bold', m.up ? 'text-green-600' : 'text-red-600')}>
-                        {m.change}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
+        {/* Your Assets Table */}
+        <div className="card p-6 mb-8">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-lg font-bold text-dark-primary">Your Assets</h3>
+            <Link to="/portfolio" className="text-primary text-xs font-bold hover:text-primary-light">Manage Portfolio</Link>
+          </div>
 
-            {/* Latest News */}
-            <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-              <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-cyan-50">
-                <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-blue-200">
-                    <Newspaper size={16} className="text-blue-700" />
-                  </div>
-                  Latest News
-                </h3>
-              </div>
-              <div className="divide-y divide-gray-100">
-                {recentNews.map((n, i) => (
-                  <Link key={i} to="/news"
-                    className="block px-6 py-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 transition-all"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={cn(
-                        'text-[11px] font-bold px-2.5 py-1 rounded-full',
-                        n.sentiment === 'BULLISH' ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700' :
-                        n.sentiment === 'BEARISH' ? 'bg-gradient-to-r from-red-100 to-orange-100 text-red-700' : 'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-700'
-                      )}>
-                        {n.sentiment}
-                      </span>
-                      <span className="text-[10px] text-gray-500">{n.time}</span>
-                    </div>
-                    <p className="text-xs text-gray-900 font-medium leading-snug line-clamp-2">{n.title}</p>
-                    <p className="text-[10px] text-gray-500 mt-2">{n.source}</p>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {/* Upcoming Events */}
-            <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-              <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-red-50">
-                <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-orange-200">
-                    <Flame size={16} className="text-orange-700" />
-                  </div>
-                  High Impact Events
-                </h3>
-              </div>
-              <div className="divide-y divide-gray-100">
-                {upcomingEvents.map((e, i) => (
-                  <Link key={i} to="/calendar"
-                    className="flex items-center justify-between px-6 py-4 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 transition-all"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{e.country}</span>
-                      <div>
-                        <p className="text-sm text-gray-900 font-medium">{e.title}</p>
-                        <span className="text-[10px] px-2.5 py-1 rounded-full bg-gradient-to-r from-red-100 to-orange-100 text-red-700 font-bold inline-block mt-1">HIGH</span>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-dark-border">
+                  <th className="text-left py-3 px-4 text-dark-secondary font-semibold">Asset</th>
+                  <th className="text-right py-3 px-4 text-dark-secondary font-semibold">Qty</th>
+                  <th className="text-right py-3 px-4 text-dark-secondary font-semibold">Avg. Price</th>
+                  <th className="text-right py-3 px-4 text-dark-secondary font-semibold">Current Price</th>
+                  <th className="text-right py-3 px-4 text-dark-secondary font-semibold">24h Change</th>
+                  <th className="text-right py-3 px-4 text-dark-secondary font-semibold">P&L</th>
+                  <th className="text-right py-3 px-4 text-dark-secondary font-semibold">P&L %</th>
+                </tr>
+              </thead>
+              <tbody>
+                {basePortfolioAssets.map((asset) => (
+                  <tr key={asset.id} className="border-b border-dark-border hover:bg-dark-tertiary/50 transition-all">
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">
+                          {asset.symbol[0]}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-dark-primary">{asset.symbol}</p>
+                          <p className="text-xs text-dark-secondary">{asset.name}</p>
+                        </div>
                       </div>
-                    </div>
-                    <p className="text-xs text-orange-600 font-bold whitespace-nowrap">in {e.time}</p>
-                  </Link>
+                    </td>
+                    <td className="text-right py-3 px-4 text-dark-primary font-semibold">{asset.qty}</td>
+                    <td className="text-right py-3 px-4 text-dark-primary font-semibold">${asset.buyPrice.toLocaleString()}</td>
+                    <td className="text-right py-3 px-4 text-dark-primary font-semibold">${asset.basePrice.toLocaleString()}</td>
+                    <td className={cn('text-right py-3 px-4 font-semibold flex items-center justify-end gap-1', asset.change24h >= 0 ? 'text-success' : 'text-danger')}>
+                      {asset.change24h >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                      {Math.abs(asset.change24h).toFixed(2)}%
+                    </td>
+                    <td className={cn('text-right py-3 px-4 font-semibold', asset.pnl >= 0 ? 'text-success' : 'text-danger')}>
+                      ${asset.pnl.toLocaleString()}
+                    </td>
+                    <td className={cn('text-right py-3 px-4 font-semibold', asset.allocation >= 0 ? 'text-success' : 'text-danger')}>
+                      +{asset.allocation.toFixed(2)}%
+                    </td>
+                  </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Bottom Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Market Overview */}
+          <div className="card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-dark-primary">Market Overview</h3>
+              <Link to="/market" className="text-primary text-xs font-bold">View All</Link>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-dark-tertiary rounded-lg">
+                <span className="text-sm font-semibold text-dark-primary">Top Gainers</span>
+                <span className="text-success font-bold text-xs">+18.75%</span>
               </div>
+              <div className="flex items-center justify-between p-3 bg-dark-tertiary rounded-lg">
+                <span className="text-sm font-semibold text-dark-primary">Top Losers</span>
+                <span className="text-danger font-bold text-xs">-14.32%</span>
+              </div>
+            </div>
+          </div>
+
+          {/* News Feed */}
+          <div className="card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-dark-primary flex items-center gap-2">
+                <Newspaper size={16} />
+                News
+              </h3>
+              <Link to="/news" className="text-primary text-xs font-bold">View All</Link>
+            </div>
+            <div className="space-y-3">
+              {recentNews.map((n, i) => (
+                <Link key={i} to="/news" className="block p-2 rounded hover:bg-dark-tertiary/50 transition-all group">
+                  <p className="text-xs text-dark-secondary line-clamp-2 group-hover:text-dark-primary">{n.title}</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className={cn('text-[10px] font-bold px-2 py-1 rounded',
+                      n.sentiment === 'BULLISH' ? 'bg-green-900/30 text-success' : 'bg-red-900/30 text-danger'
+                    )}>
+                      {n.sentiment}
+                    </span>
+                    <span className="text-[10px] text-dark-secondary">{n.time}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Watchlist Quick View */}
+          <div className="card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-dark-primary">Watchlist</h3>
+              <Link to="/watchlist" className="text-primary text-xs font-bold">View All</Link>
+            </div>
+            <div className="space-y-2">
+              {topMoversPrices.slice(0, 4).map((m, i) => (
+                <Link key={i} to="/market" className="flex items-center justify-between p-2 rounded hover:bg-dark-tertiary/50 transition-all group">
+                  <div>
+                    <p className="text-sm font-semibold text-dark-primary group-hover:text-primary">{m.symbol}</p>
+                    <p className="text-xs text-dark-secondary">{m.name}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-dark-primary">${m.price.toFixed(2)}</p>
+                    <p className={cn('text-xs font-bold', m.up ? 'text-success' : 'text-danger')}>
+                      {m.up ? '+' : ''}{parseFloat(m.change).toFixed(2)}%
+                    </p>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         </div>
