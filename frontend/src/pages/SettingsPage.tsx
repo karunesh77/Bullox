@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Settings, Bell, Lock, Eye, User, LogOut, ToggleRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface SettingSection {
   title: string;
@@ -16,7 +15,7 @@ interface SettingItem {
 }
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState({
+  const [settings] = useState({
     emailNotifications: true,
     priceAlerts: true,
     newsDigest: false,

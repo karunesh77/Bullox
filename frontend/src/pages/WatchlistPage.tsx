@@ -22,16 +22,8 @@ const MOCK_WATCHLIST: WatchlistItem[] = [
   { id: '4', symbol: 'BTCUSDT', name: 'Bitcoin', price: 68420, change: 2150, changePercent: 3.25, high: 69200, low: 66100, volume: '28.5B', category: 'CRYPTO' },
 ];
 
-const categoryConfig = {
-  STOCKS: { color: 'text-blue-700', bg: 'bg-blue-100', border: 'border-blue-300' },
-  CRYPTO: { color: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-300' },
-  FOREX: { color: 'text-green-700', bg: 'bg-green-100', border: 'border-green-300' },
-  INDICES: { color: 'text-purple-700', bg: 'bg-purple-100', border: 'border-purple-300' },
-};
-
 function WatchlistCard({ item, onRemove }: { item: WatchlistItem; onRemove: (id: string) => void }) {
   const isPositive = item.change >= 0;
-  const cfg = categoryConfig[item.category];
 
   return (
     <div className="p-5 rounded-2xl border border-gray-200 bg-white hover:shadow-lg transition-all group">

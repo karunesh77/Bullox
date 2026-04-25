@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Bell, Plus, X, CheckCircle } from 'lucide-react';
-import api from '@/api/axios';
 import { cn } from '@/lib/utils';
 
 interface PriceAlert {
@@ -60,18 +58,6 @@ function AlertCard({ alert, onDelete }: { alert: PriceAlert; onDelete: (id: stri
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState<PriceAlert[]>(MOCK_ALERTS);
   const [showForm, setShowForm] = useState(false);
-
-  const { data = MOCK_ALERTS } = useQuery({
-    queryKey: ['alerts'],
-    queryFn: async () => {
-      try {
-        const res = await api.get('/alerts');
-        return (res.data?.alerts || res.data || []) as PriceAlert[];
-      } catch {
-        return MOCK_ALERTS;
-      }
-    },
-  });
 
   const triggeredCount = alerts.filter((a) => a.triggered).length;
   const activeCount = alerts.length;

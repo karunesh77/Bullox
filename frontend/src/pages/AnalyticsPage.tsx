@@ -55,7 +55,7 @@ export default function AnalyticsPage() {
         <div className="p-6 rounded-2xl bg-white border border-gray-200">
           <h2 className="text-xl font-bold text-gray-900 mb-6">Monthly Breakdown</h2>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-4">
-            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((month, i) => (
+            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((month) => (
               <div key={month} className="text-center p-4 rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200">
                 <p className="font-bold text-gray-900 mb-2">{month}</p>
                 <p className="text-lg font-bold text-green-700">+5.2%</p>

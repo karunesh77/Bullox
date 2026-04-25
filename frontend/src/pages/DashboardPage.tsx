@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import {
   TrendingUp, TrendingDown, Newspaper,
-  ArrowRight, Activity, Flame, Clock, Crown
+  ArrowRight, Activity, Flame, Crown
 } from 'lucide-react';
 import {
   AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis

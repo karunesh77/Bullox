@@ -31,17 +31,17 @@ const MOCK_CRYPTO: Quote[] = [
 ];
 
 const MOCK_CANDLES = [
-  { time: '2026-04-15', open: 200, high: 205, low: 198, close: 202, volume: 1000000 },
-  { time: '2026-04-16', open: 202, high: 210, low: 200, close: 208, volume: 1200000 },
-  { time: '2026-04-17', open: 208, high: 215, low: 206, close: 212, volume: 1100000 },
-  { time: '2026-04-18', open: 212, high: 218, low: 210, close: 215, volume: 900000 },
-  { time: '2026-04-19', open: 215, high: 220, low: 213, close: 218, volume: 1050000 },
-  { time: '2026-04-20', open: 218, high: 222, low: 216, close: 220, volume: 1300000 },
-  { time: '2026-04-21', open: 220, high: 225, low: 218, close: 223, volume: 1150000 },
-  { time: '2026-04-22', open: 223, high: 228, low: 221, close: 226, volume: 1400000 },
-  { time: '2026-04-23', open: 226, high: 232, low: 224, close: 230, volume: 1600000 },
-  { time: '2026-04-24', open: 230, high: 235, low: 228, close: 233, volume: 1500000 },
-  { time: '2026-04-25', open: 233, high: 238, low: 231, close: 237, volume: 1700000 },
+  { time: 1713139200, open: 200, high: 205, low: 198, close: 202, volume: 1000000 },
+  { time: 1713225600, open: 202, high: 210, low: 200, close: 208, volume: 1200000 },
+  { time: 1713312000, open: 208, high: 215, low: 206, close: 212, volume: 1100000 },
+  { time: 1713398400, open: 212, high: 218, low: 210, close: 215, volume: 900000 },
+  { time: 1713484800, open: 215, high: 220, low: 213, close: 218, volume: 1050000 },
+  { time: 1713571200, open: 218, high: 222, low: 216, close: 220, volume: 1300000 },
+  { time: 1713657600, open: 220, high: 225, low: 218, close: 223, volume: 1150000 },
+  { time: 1713744000, open: 223, high: 228, low: 221, close: 226, volume: 1400000 },
+  { time: 1713830400, open: 226, high: 232, low: 224, close: 230, volume: 1600000 },
+  { time: 1713916800, open: 230, high: 235, low: 228, close: 233, volume: 1500000 },
+  { time: 1714003200, open: 233, high: 238, low: 231, close: 237, volume: 1700000 },
 ];
 
 export default function MarketPage() {
