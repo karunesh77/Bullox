@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import {
@@ -9,8 +10,13 @@ import {
 } from 'recharts';
 import { cn } from '@/lib/utils';
 
-// Mock portfolio P&L chart data
-const portfolioData = [
+// Real-time mock data generator
+const generateMockPrice = (basePrice: number, volatility: number = 0.02): number => {
+  const change = (Math.random() - 0.5) * volatility * basePrice;
+  return Math.round((basePrice + change) * 100) / 100;
+};
+
+const basePortfolioData = [
   { date: 'Apr 1',  value: 100000 },
   { date: 'Apr 3',  value: 102400 },
   { date: 'Apr 5',  value: 101200 },
@@ -24,12 +30,20 @@ const portfolioData = [
   { date: 'Apr 21', value: 118400 },
 ];
 
+const basePortfolioAssets = [
+  { id: 'AAPL', symbol: 'AAPL', name: 'Apple Inc', qty: 10, buyPrice: 180.5, basePrice: 182.45, pnl: 19.5, allocation: 15.4 },
+  { id: 'MSFT', symbol: 'MSFT', name: 'Microsoft', qty: 5, buyPrice: 420, basePrice: 428.72, pnl: 43.6, allocation: 18.2 },
+  { id: 'NVDA', symbol: 'NVDA', name: 'Nvidia', qty: 2, buyPrice: 850, basePrice: 875.4, pnl: 50.8, allocation: 14.8 },
+  { id: 'TSLA', symbol: 'TSLA', name: 'Tesla', qty: 8, buyPrice: 190, basePrice: 192.3, pnl: 18.4, allocation: 13.0 },
+  { id: 'BTC', symbol: 'BTCUSDT', name: 'Bitcoin', qty: 0.5, buyPrice: 65000, basePrice: 68420, pnl: 1710, allocation: 23.1 },
+];
+
 const topMovers = [
-  { symbol: 'NVDA',    name: 'Nvidia Corp',  price: '875.40',  change: '+4.23%', up: true },
-  { symbol: 'TSLA',    name: 'Tesla Inc',    price: '192.30',  change: '+2.81%', up: true },
-  { symbol: 'SOLUSDT', name: 'Solana',       price: '183.40',  change: '+5.67%', up: true },
-  { symbol: 'AAPL',    name: 'Apple Inc',    price: '213.18',  change: '-0.54%', up: false },
-  { symbol: 'ETHUSDT', name: 'Ethereum',     price: '2,332',   change: '-1.20%', up: false },
+  { symbol: 'NVDA',    name: 'Nvidia Corp',  basePrice: 875.40,  change: '+4.23%', up: true },
+  { symbol: 'TSLA',    name: 'Tesla Inc',    basePrice: 192.30,  change: '+2.81%', up: true },
+  { symbol: 'SOLUSDT', name: 'Solana',       basePrice: 183.40,  change: '+5.67%', up: true },
+  { symbol: 'AAPL',    name: 'Apple Inc',    basePrice: 213.18,  change: '-0.54%', up: false },
+  { symbol: 'ETHUSDT', name: 'Ethereum',     basePrice: 2332,    change: '-1.20%', up: false },
 ];
 
 const recentNews = [
@@ -39,9 +53,9 @@ const recentNews = [
 ];
 
 const upcomingEvents = [
-  { title: 'US Non-Farm Payrolls', time: '2h', impact: 'HIGH', country: '🇺🇸' },
-  { title: 'RBI Repo Rate Decision', time: '6h', impact: 'HIGH', country: '🇮🇳' },
-  { title: 'US CPI (MoM)', time: '9h', impact: 'HIGH', country: '🇺🇸' },
+  { country: '🇺🇸', title: 'Fed Interest Rate Decision', time: '2h' },
+  { country: '🇪🇺', title: 'ECB Monetary Policy', time: '5h' },
+  { country: '🇬🇧', title: 'UK Unemployment Data', time: '8h' },
 ];
 
 function getGreeting() {
@@ -65,7 +79,32 @@ export default function DashboardPage() {
   const { user } = useAuthStore();
   const isPro = user?.role === 'PRO' || user?.role === 'EXPERT';
 
-  const totalValue  = 118400;
+  // Real-time state
+  const [topMoversPrices, setTopMoversPrices] = useState(topMovers.map(m => ({ ...m, price: m.basePrice })));
+  const [totalValue, setTotalValue] = useState(118400);
+
+  // Real-time updates every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Update total portfolio value
+      const updated = basePortfolioAssets.map(asset => ({
+        ...asset,
+        currentPrice: generateMockPrice(asset.basePrice, 0.015),
+      }));
+      const newTotal = updated.reduce((sum, a) => sum + (a.currentPrice * a.qty), 0);
+      setTotalValue(newTotal);
+
+      // Update top movers
+      const updatedMovers = topMovers.map(m => ({
+        ...m,
+        price: generateMockPrice(m.basePrice, 0.02),
+      }));
+      setTopMoversPrices(updatedMovers);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const invested    = 100000;
   const pnl         = totalValue - invested;
   const pnlPct      = ((pnl / invested) * 100).toFixed(2);
@@ -141,7 +180,7 @@ export default function DashboardPage() {
             </div>
             <div className="p-6 h-56">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={portfolioData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+                <AreaChart data={basePortfolioData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
                   <defs>
                     <linearGradient id="portfolioGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%"   stopColor="#3b82f6" stopOpacity={0.2} />
@@ -170,7 +209,7 @@ export default function DashboardPage() {
                 </h3>
               </div>
               <div className="divide-y divide-gray-100">
-                {topMovers.map((m) => (
+                {topMoversPrices.map((m) => (
                   <Link key={m.symbol} to="/market"
                     className="flex items-center justify-between px-6 py-4 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 transition-all"
                   >
@@ -179,7 +218,7 @@ export default function DashboardPage() {
                       <p className="text-xs text-gray-600 mt-1">{m.name}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-gray-900">${m.price}</p>
+                      <p className="text-sm font-bold text-gray-900">${m.price.toFixed(2)}</p>
                       <p className={cn('text-sm font-bold', m.up ? 'text-green-600' : 'text-red-600')}>
                         {m.change}
                       </p>
