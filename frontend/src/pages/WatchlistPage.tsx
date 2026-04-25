@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BookMarked, TrendingUp, TrendingDown, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -6,6 +6,7 @@ interface WatchlistItem {
   id: string;
   symbol: string;
   name: string;
+  basePrice: number;
   price: number;
   change: number;
   changePercent: number;
@@ -15,11 +16,17 @@ interface WatchlistItem {
   category: 'STOCKS' | 'CRYPTO' | 'FOREX' | 'INDICES';
 }
 
+// Real-time mock price generator
+const generateMockPrice = (basePrice: number, volatility: number = 0.02): number => {
+  const change = (Math.random() - 0.5) * volatility * basePrice;
+  return Math.round((basePrice + change) * 100) / 100;
+};
+
 const MOCK_WATCHLIST: WatchlistItem[] = [
-  { id: '1', symbol: 'AAPL', name: 'Apple Inc', price: 182.45, change: 2.45, changePercent: 1.36, high: 185.20, low: 178.90, volume: '52.3M', category: 'STOCKS' },
-  { id: '2', symbol: 'GOOGL', name: 'Alphabet Inc', price: 139.82, change: -1.23, changePercent: -0.87, high: 142.15, low: 137.50, volume: '28.4M', category: 'STOCKS' },
-  { id: '3', symbol: 'MSFT', name: 'Microsoft Corp', price: 424.35, change: 5.12, changePercent: 1.22, high: 428.90, low: 418.20, volume: '19.2M', category: 'STOCKS' },
-  { id: '4', symbol: 'BTCUSDT', name: 'Bitcoin', price: 68420, change: 2150, changePercent: 3.25, high: 69200, low: 66100, volume: '28.5B', category: 'CRYPTO' },
+  { id: '1', symbol: 'AAPL', name: 'Apple Inc', basePrice: 182.45, price: 182.45, change: 2.45, changePercent: 1.36, high: 185.20, low: 178.90, volume: '52.3M', category: 'STOCKS' },
+  { id: '2', symbol: 'GOOGL', name: 'Alphabet Inc', basePrice: 139.82, price: 139.82, change: -1.23, changePercent: -0.87, high: 142.15, low: 137.50, volume: '28.4M', category: 'STOCKS' },
+  { id: '3', symbol: 'MSFT', name: 'Microsoft Corp', basePrice: 424.35, price: 424.35, change: 5.12, changePercent: 1.22, high: 428.90, low: 418.20, volume: '19.2M', category: 'STOCKS' },
+  { id: '4', symbol: 'BTCUSDT', name: 'Bitcoin', basePrice: 68420, price: 68420, change: 2150, changePercent: 3.25, high: 69200, low: 66100, volume: '28.5B', category: 'CRYPTO' },
 ];
 
 function WatchlistCard({ item, onRemove }: { item: WatchlistItem; onRemove: (id: string) => void }) {
@@ -37,9 +44,9 @@ function WatchlistCard({ item, onRemove }: { item: WatchlistItem; onRemove: (id:
         </button>
       </div>
       <div className="flex items-end justify-between">
-        <p className="text-2xl font-bold text-gray-900">{item.price}</p>
+        <p className="text-2xl font-bold text-gray-900">${item.price.toFixed(item.symbol.includes('BTC') ? 0 : 2)}</p>
         <div className={cn('text-sm font-bold px-3 py-1 rounded-lg', isPositive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700')}>
-          {isPositive ? <TrendingUp size={14} className="inline" /> : <TrendingDown size={14} className="inline" />} {Math.abs(item.change).toFixed(2)}
+          {isPositive ? <TrendingUp size={14} className="inline mr-1" /> : <TrendingDown size={14} className="inline mr-1" />} {isPositive ? '+' : ''}{item.changePercent.toFixed(2)}%
         </div>
       </div>
     </div>
@@ -48,6 +55,20 @@ function WatchlistCard({ item, onRemove }: { item: WatchlistItem; onRemove: (id:
 
 export default function WatchlistPage() {
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>(MOCK_WATCHLIST);
+
+  // Real-time price updates every 3 seconds
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setWatchlist(prev =>
+        prev.map(item => ({
+          ...item,
+          price: generateMockPrice(item.basePrice, item.category === 'CRYPTO' ? 0.03 : 0.015),
+        }))
+      );
+    }, 3000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-blue-50 p-6">
@@ -58,7 +79,7 @@ export default function WatchlistPage() {
           </div>
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">My Watchlist</h1>
-            <p className="text-sm text-gray-600">Track your favorite instruments</p>
+            <p className="text-sm text-gray-600">Track your favorite instruments with live prices</p>
           </div>
         </div>
 

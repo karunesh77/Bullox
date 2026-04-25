@@ -1,6 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Users, Star, Shield, Zap, Award, ChevronDown, ChevronUp, UserCheck, UserPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// Real-time mock data generator
+const generateRandomOffset = (baseValue: number, volatility: number = 0.02): number => {
+  const change = (Math.random() - 0.5) * volatility * baseValue;
+  return Math.round(change * 100) / 100;
+};
 
 interface Trader {
   id: string;
@@ -9,7 +15,9 @@ interface Trader {
   avatar: string;
   badge?: 'PRO' | 'VERIFIED' | 'TOP';
   returnPercent: number;
+  baseReturnPercent: number;
   returnMonth: number;
+  baseReturnMonth: number;
   winRate: number;
   followers: number;
   trades: number;
@@ -18,6 +26,7 @@ interface Trader {
   bio: string;
   isFollowing: boolean;
   equity: number;
+  baseEquity: number;
   maxDrawdown: number;
   chart: number[]; // mini sparkline
 }
@@ -30,7 +39,9 @@ const MOCK_TRADERS: Trader[] = [
     avatar: 'RS',
     badge: 'TOP',
     returnPercent: 284,
+    baseReturnPercent: 284,
     returnMonth: 18.4,
+    baseReturnMonth: 18.4,
     winRate: 74,
     followers: 12400,
     trades: 1842,
@@ -39,6 +50,7 @@ const MOCK_TRADERS: Trader[] = [
     bio: 'Momentum trader. 8 years exp. Focus on US tech & AI stocks.',
     isFollowing: true,
     equity: 2400000,
+    baseEquity: 2400000,
     maxDrawdown: 12.3,
     chart: [40, 45, 42, 55, 58, 62, 59, 70, 75, 80, 78, 90],
   },
@@ -49,7 +61,9 @@ const MOCK_TRADERS: Trader[] = [
     avatar: 'PK',
     badge: 'VERIFIED',
     returnPercent: 156,
+    baseReturnPercent: 156,
     returnMonth: 9.2,
+    baseReturnMonth: 9.2,
     winRate: 68,
     followers: 8700,
     trades: 3210,
@@ -58,6 +72,7 @@ const MOCK_TRADERS: Trader[] = [
     bio: 'Forex & crypto swing trader. Risk-first approach. CFA Level 2.',
     isFollowing: false,
     equity: 980000,
+    baseEquity: 980000,
     maxDrawdown: 7.1,
     chart: [50, 52, 54, 51, 58, 60, 63, 61, 68, 72, 75, 78],
   },
@@ -68,7 +83,9 @@ const MOCK_TRADERS: Trader[] = [
     avatar: 'AM',
     badge: 'PRO',
     returnPercent: 421,
+    baseReturnPercent: 421,
     returnMonth: 24.1,
+    baseReturnMonth: 24.1,
     winRate: 61,
     followers: 5200,
     trades: 9870,
@@ -77,6 +94,7 @@ const MOCK_TRADERS: Trader[] = [
     bio: 'Quant algo trader. High frequency crypto + US equities. High risk.',
     isFollowing: false,
     equity: 3800000,
+    baseEquity: 3800000,
     maxDrawdown: 28.4,
     chart: [30, 45, 35, 60, 50, 80, 65, 95, 75, 110, 90, 130],
   },
@@ -87,7 +105,9 @@ const MOCK_TRADERS: Trader[] = [
     avatar: 'SP',
     badge: 'VERIFIED',
     returnPercent: 98,
+    baseReturnPercent: 98,
     returnMonth: 6.8,
+    baseReturnMonth: 6.8,
     winRate: 79,
     followers: 15600,
     trades: 642,
@@ -96,6 +116,7 @@ const MOCK_TRADERS: Trader[] = [
     bio: 'Long-term value investor. Indian equities specialist. 12 years exp.',
     isFollowing: true,
     equity: 1200000,
+    baseEquity: 1200000,
     maxDrawdown: 5.2,
     chart: [60, 62, 63, 65, 64, 67, 68, 70, 71, 73, 75, 76],
   },
@@ -106,7 +127,9 @@ const MOCK_TRADERS: Trader[] = [
     avatar: 'VD',
     badge: 'PRO',
     returnPercent: 312,
+    baseReturnPercent: 312,
     returnMonth: 15.7,
+    baseReturnMonth: 15.7,
     winRate: 65,
     followers: 9300,
     trades: 5420,
@@ -115,6 +138,7 @@ const MOCK_TRADERS: Trader[] = [
     bio: 'Full-time crypto trader since 2017. DeFi & altcoin cycles expert.',
     isFollowing: false,
     equity: 1850000,
+    baseEquity: 1850000,
     maxDrawdown: 22.1,
     chart: [40, 50, 45, 65, 55, 85, 70, 100, 85, 115, 95, 125],
   },
@@ -125,7 +149,9 @@ const MOCK_TRADERS: Trader[] = [
     avatar: 'AJ',
     badge: 'VERIFIED',
     returnPercent: 187,
+    baseReturnPercent: 187,
     returnMonth: 11.3,
+    baseReturnMonth: 11.3,
     winRate: 72,
     followers: 6800,
     trades: 2130,
@@ -134,6 +160,7 @@ const MOCK_TRADERS: Trader[] = [
     bio: 'Options & derivatives trader. Indian indices & F&O specialist.',
     isFollowing: false,
     equity: 750000,
+    baseEquity: 750000,
     maxDrawdown: 14.8,
     chart: [45, 50, 48, 58, 62, 60, 68, 72, 70, 78, 82, 85],
   },
@@ -308,6 +335,22 @@ export default function CopyTradingPage() {
   const [traders, setTraders] = useState<Trader[]>(MOCK_TRADERS);
   const [filter, setFilter] = useState<'all' | 'following'>('all');
   const [sortBy, setSortBy] = useState<'return' | 'winrate' | 'followers'>('return');
+
+  // Real-time updates for trader returns and equity every 3 seconds
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setTraders(prev =>
+        prev.map(trader => ({
+          ...trader,
+          equity: trader.baseEquity + generateRandomOffset(trader.baseEquity, 0.01),
+          returnPercent: Math.max(0, trader.baseReturnPercent + generateRandomOffset(trader.baseReturnPercent, 0.02)),
+          returnMonth: trader.baseReturnMonth + generateRandomOffset(trader.baseReturnMonth, 0.04),
+        }))
+      );
+    }, 3000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   const toggleFollow = (id: string) => {
     setTraders(prev => prev.map(t => t.id === id ? { ...t, isFollowing: !t.isFollowing } : t));

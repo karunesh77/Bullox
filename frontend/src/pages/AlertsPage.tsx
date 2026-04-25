@@ -1,6 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, Plus, X, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// Real-time mock price generator
+const generateMockPrice = (basePrice: number, volatility: number = 0.02): number => {
+  const change = (Math.random() - 0.5) * volatility * basePrice;
+  return Math.round((basePrice + change) * 100) / 100;
+};
 
 interface PriceAlert {
   id: string;
@@ -9,14 +15,15 @@ interface PriceAlert {
   condition: 'above' | 'below';
   targetPrice: number;
   currentPrice: number;
+  basePrice: number;
   createdAt: string;
   triggered: boolean;
 }
 
 const MOCK_ALERTS: PriceAlert[] = [
-  { id: '1', symbol: 'AAPL', name: 'Apple Inc', condition: 'above', targetPrice: 185, currentPrice: 182.45, createdAt: '2026-04-25', triggered: false },
-  { id: '2', symbol: 'BTCUSDT', name: 'Bitcoin', condition: 'below', targetPrice: 67000, currentPrice: 68420, createdAt: '2026-04-24', triggered: false },
-  { id: '3', symbol: 'NIFTY50', name: 'NIFTY 50', condition: 'above', targetPrice: 22000, currentPrice: 21845, createdAt: '2026-04-23', triggered: false },
+  { id: '1', symbol: 'AAPL', name: 'Apple Inc', condition: 'above', targetPrice: 185, currentPrice: 182.45, basePrice: 182.45, createdAt: '2026-04-25', triggered: false },
+  { id: '2', symbol: 'BTCUSDT', name: 'Bitcoin', condition: 'below', targetPrice: 67000, currentPrice: 68420, basePrice: 68420, createdAt: '2026-04-24', triggered: false },
+  { id: '3', symbol: 'NIFTY50', name: 'NIFTY 50', condition: 'above', targetPrice: 22000, currentPrice: 21845, basePrice: 21845, createdAt: '2026-04-23', triggered: false },
 ];
 
 function AlertCard({ alert, onDelete }: { alert: PriceAlert; onDelete: (id: string) => void }) {
@@ -58,6 +65,20 @@ function AlertCard({ alert, onDelete }: { alert: PriceAlert; onDelete: (id: stri
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState<PriceAlert[]>(MOCK_ALERTS);
   const [showForm, setShowForm] = useState(false);
+
+  // Real-time price updates every 3 seconds
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setAlerts(prev =>
+        prev.map(alert => ({
+          ...alert,
+          currentPrice: generateMockPrice(alert.basePrice, alert.symbol.includes('BTC') ? 0.03 : 0.015),
+        }))
+      );
+    }, 3000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   const triggeredCount = alerts.filter((a) => a.triggered).length;
   const activeCount = alerts.length;
