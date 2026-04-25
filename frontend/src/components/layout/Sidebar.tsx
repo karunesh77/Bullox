@@ -42,24 +42,24 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       {/* Mobile overlay */}
       {open && (
         <div
-          className="fixed inset-0 z-20 bg-black/60 lg:hidden"
+          className="fixed inset-0 z-20 bg-black/20 lg:hidden"
           onClick={onClose}
         />
       )}
 
       <aside className={cn(
-        'fixed top-0 left-0 z-30 h-full w-64 bg-gray-900 border-r border-gray-800',
+        'fixed top-0 left-0 z-30 h-full w-64 bg-white border-r border-gray-200',
         'flex flex-col transition-transform duration-300',
         'lg:translate-x-0 lg:static lg:z-auto',
         open ? 'translate-x-0' : '-translate-x-full'
       )}>
         {/* Logo */}
-        <div className="flex items-center justify-between px-5 py-5 border-b border-gray-800">
+        <div className="flex items-center justify-between px-5 py-5 border-b border-gray-200">
           <div className="flex items-center gap-2">
-            <TrendingUp size={22} className="text-green-400" />
-            <span className="text-lg font-bold text-white">Bullox</span>
+            <TrendingUp size={22} className="text-blue-600" />
+            <span className="text-lg font-bold text-gray-900">Bullox</span>
           </div>
-          <button onClick={onClose} className="lg:hidden text-gray-500 hover:text-white">
+          <button onClick={onClose} className="lg:hidden text-gray-500 hover:text-gray-700">
             <X size={20} />
           </button>
         </div>
@@ -75,8 +75,8 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               className={({ isActive }) => cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  ? 'bg-blue-50 text-blue-600 border border-blue-200'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
               )}
             >
               <Icon size={18} />
@@ -86,7 +86,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         </nav>
 
         {/* Bottom nav */}
-        <div className="px-3 pb-3 flex flex-col gap-1 border-t border-gray-800 pt-3">
+        <div className="px-3 pb-3 flex flex-col gap-1 border-t border-gray-200 pt-3">
           {BOTTOM_NAV.map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
@@ -95,10 +95,10 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               className={({ isActive }) => cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                 to === '/subscription'
-                  ? 'text-yellow-400 hover:bg-yellow-500/10'
+                  ? 'text-orange-600 hover:bg-orange-50'
                   : isActive
-                  ? 'bg-green-500/10 text-green-400'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
               )}
             >
               <Icon size={18} />
@@ -107,15 +107,15 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           ))}
 
           {/* User + logout */}
-          <div className="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-800/50 border border-gray-700">
-            <div className="w-8 h-8 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center text-green-400 text-xs font-bold uppercase flex-shrink-0">
+          <div className="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-100 border border-gray-300">
+            <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-300 flex items-center justify-center text-blue-600 text-xs font-bold uppercase flex-shrink-0">
               {user?.username?.[0] ?? 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-white truncate">{user?.username ?? 'User'}</p>
+              <p className="text-xs font-medium text-gray-900 truncate">{user?.username ?? 'User'}</p>
               <p className="text-xs text-gray-500 truncate">{user?.role}</p>
             </div>
-            <button onClick={handleLogout} className="text-gray-500 hover:text-red-400 transition-colors">
+            <button onClick={handleLogout} className="text-gray-500 hover:text-red-600 transition-colors">
               <LogOut size={16} />
             </button>
           </div>

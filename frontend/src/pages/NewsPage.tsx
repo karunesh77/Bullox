@@ -136,9 +136,9 @@ function timeAgo(iso: string) {
 }
 
 const sentimentConfig = {
-  BULLISH: { icon: TrendingUp, color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20', label: 'Bullish' },
-  BEARISH: { icon: TrendingDown, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20', label: 'Bearish' },
-  NEUTRAL: { icon: Minus, color: 'text-gray-400', bg: 'bg-gray-500/10', border: 'border-gray-500/20', label: 'Neutral' },
+  BULLISH: { icon: TrendingUp, color: 'text-green-700', bg: 'bg-green-100', border: 'border-green-300', label: 'Bullish' },
+  BEARISH: { icon: TrendingDown, color: 'text-red-700', bg: 'bg-red-100', border: 'border-red-300', label: 'Bearish' },
+  NEUTRAL: { icon: Minus, color: 'text-gray-700', bg: 'bg-gray-100', border: 'border-gray-300', label: 'Neutral' },
 };
 
 function NewsCard({ article }: { article: NewsArticle }) {
@@ -150,48 +150,73 @@ function NewsCard({ article }: { article: NewsArticle }) {
       href={article.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group block rounded-xl border border-gray-800 bg-gray-900/50 p-5 hover:bg-gray-900 hover:border-gray-700 transition-all"
+      className={cn(
+        'group block rounded-2xl border p-5 hover:shadow-lg transition-all',
+        article.sentiment === 'BULLISH' ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 hover:border-green-300' :
+        article.sentiment === 'BEARISH' ? 'bg-gradient-to-br from-red-50 to-orange-50 border-red-200 hover:border-red-300' :
+        'bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200 hover:border-blue-300'
+      )}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 flex-wrap">
           {sentiment && SentimentIcon && (
-            <span className={cn('flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border', sentiment.bg, sentiment.border, sentiment.color)}>
-              <SentimentIcon size={11} />
+            <span className={cn('flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-bold border', sentiment.bg, sentiment.border, sentiment.color)}>
+              <SentimentIcon size={12} />
               {sentiment.label}
             </span>
           )}
           {article.impact === 'HIGH' && (
-            <span className="flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-orange-500/10 border border-orange-500/20 text-orange-400">
-              <Flame size={11} />
+            <span className="flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-bold bg-orange-100 border border-orange-300 text-orange-700">
+              <Flame size={12} />
               High Impact
             </span>
           )}
         </div>
-        <ExternalLink size={14} className="text-gray-600 group-hover:text-gray-400 flex-shrink-0 mt-1" />
+        <ExternalLink size={14} className="text-gray-400 group-hover:text-blue-600 flex-shrink-0 mt-1" />
       </div>
 
-      <h3 className="text-base font-semibold text-white mb-2 leading-snug group-hover:text-green-400 transition-colors">
+      <h3 className={cn('text-base font-bold mb-2 leading-snug transition-colors',
+        article.sentiment === 'BULLISH' ? 'text-green-900 group-hover:text-green-700' :
+        article.sentiment === 'BEARISH' ? 'text-red-900 group-hover:text-red-700' :
+        'text-blue-900 group-hover:text-blue-700'
+      )}>
         {article.title}
       </h3>
 
       {article.summary && (
-        <p className="text-sm text-gray-400 mb-3 leading-relaxed line-clamp-2">
+        <p className={cn('text-sm mb-3 leading-relaxed line-clamp-2',
+          article.sentiment === 'BULLISH' ? 'text-green-800' :
+          article.sentiment === 'BEARISH' ? 'text-red-800' :
+          'text-blue-800'
+        )}>
           {article.summary}
         </p>
       )}
 
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-3 text-xs text-gray-500">
-          <span className="font-medium text-gray-400">{article.source}</span>
-          <span className="flex items-center gap-1">
-            <Clock size={10} />
+        <div className="flex items-center gap-3 text-xs">
+          <span className={cn('font-bold',
+            article.sentiment === 'BULLISH' ? 'text-green-800' :
+            article.sentiment === 'BEARISH' ? 'text-red-800' :
+            'text-blue-800'
+          )}>{article.source}</span>
+          <span className={cn('flex items-center gap-1',
+            article.sentiment === 'BULLISH' ? 'text-green-700' :
+            article.sentiment === 'BEARISH' ? 'text-red-700' :
+            'text-blue-700'
+          )}>
+            <Clock size={11} />
             {timeAgo(article.publishedAt)}
           </span>
         </div>
         {article.affectedSymbols && article.affectedSymbols.length > 0 && (
-          <div className="flex items-center gap-1 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
             {article.affectedSymbols.slice(0, 3).map((sym) => (
-              <span key={sym} className="text-xs font-mono px-1.5 py-0.5 rounded bg-gray-800 text-gray-300">
+              <span key={sym} className={cn('text-xs font-bold px-3 py-1 rounded-lg border',
+                article.sentiment === 'BULLISH' ? 'bg-green-200 text-green-800 border-green-400' :
+                article.sentiment === 'BEARISH' ? 'bg-red-200 text-red-800 border-red-400' :
+                'bg-blue-200 text-blue-800 border-blue-400'
+              )}>
                 {sym}
               </span>
             ))}
@@ -227,34 +252,35 @@ export default function NewsPage() {
   });
 
   return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-blue-50 to-purple-50 p-6">
     <div className="max-w-6xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center">
-            <Newspaper size={18} className="text-green-400" />
+        <div className="flex items-center gap-4 mb-2">
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-100 to-cyan-100">
+            <Newspaper size={24} className="text-blue-700" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">News Feed</h1>
-            <p className="text-sm text-gray-500">AI-powered sentiment analysis · Updates every minute</p>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">News Feed</h1>
+            <p className="text-sm text-gray-600">AI-powered sentiment analysis · Updates every minute</p>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-6 mb-6 pb-6 border-b border-gray-800">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500 uppercase tracking-wider">Category</span>
-          <div className="flex gap-1">
+      <div className="flex flex-wrap items-center gap-6 mb-8 pb-6 border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-600 uppercase tracking-wider font-bold">Category</span>
+          <div className="flex gap-2">
             {CATEGORIES.map((c) => (
               <button
                 key={c.value}
                 onClick={() => setCategory(c.value)}
                 className={cn(
-                  'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+                  'px-4 py-2 rounded-lg text-xs font-bold transition-all',
                   category === c.value
-                    ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800 border border-transparent'
+                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md'
+                    : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-400'
                 )}
               >
                 {c.label}
@@ -263,18 +289,18 @@ export default function NewsPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500 uppercase tracking-wider">Sentiment</span>
-          <div className="flex gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-600 uppercase tracking-wider font-bold">Sentiment</span>
+          <div className="flex gap-2">
             {SENTIMENTS.map((s) => (
               <button
                 key={s.value}
                 onClick={() => setSentiment(s.value)}
                 className={cn(
-                  'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+                  'px-4 py-2 rounded-lg text-xs font-bold transition-all',
                   sentiment === s.value
-                    ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800 border border-transparent'
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
+                    : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-400'
                 )}
               >
                 {s.label}
@@ -286,23 +312,24 @@ export default function NewsPage() {
 
       {/* Feed */}
       {isLoading ? (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-32 rounded-xl bg-gray-900/50 border border-gray-800 animate-pulse" />
+            <div key={i} className="h-32 rounded-2xl bg-gray-200 border border-gray-300 animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20 text-gray-500">
-          <Newspaper size={40} className="mx-auto mb-3 opacity-50" />
+          <Newspaper size={40} className="mx-auto mb-3 opacity-30" />
           <p>No articles match your filters</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {filtered.map((article) => (
             <NewsCard key={article.id} article={article} />
           ))}
         </div>
       )}
+    </div>
     </div>
   );
 }

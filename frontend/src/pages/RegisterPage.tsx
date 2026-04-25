@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import { authApi } from '@/api/auth';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import { cn } from '@/lib/utils';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -67,104 +68,135 @@ export default function RegisterPage() {
   const strength = passwordStrength();
 
   return (
-    <div className="min-h-screen bg-gray-950 flex">
+    <div className="min-h-screen bg-gray-900 flex">
       {/* Left — Branding */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-gradient-to-br from-gray-900 to-gray-950 border-r border-gray-800">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-gradient-to-br from-gray-800 to-gray-900">
         <div className="flex items-center gap-2">
-          <TrendingUp size={28} className="text-green-400" />
+          <TrendingUp size={28} className="text-cyan-400" />
           <span className="text-2xl font-bold text-white">Bullox</span>
         </div>
         <div>
           <h2 className="text-4xl font-bold text-white leading-tight mb-4">
-            Start your journey.<br />
-            <span className="text-green-400">It's free.</span>
+            Start trading<br />
+            <span className="text-cyan-400">Risk-free today</span>
           </h2>
-          <p className="text-gray-400 text-lg">
-            Join thousands of traders using Bullox to track markets, get AI news insights and copy expert strategies.
+          <p className="text-gray-300 text-lg mb-8">
+            Join thousands of traders using Bullox for smarter trading decisions.
           </p>
+          <ul className="flex flex-col gap-3">
+            {[
+              'Real-time stock & crypto prices',
+              'AI-powered news analysis',
+              'Smart price alerts',
+              'Copy expert traders',
+            ].map((item) => (
+              <li key={item} className="flex items-center gap-3 text-gray-300 text-sm">
+                <span className="w-5 h-5 rounded-full bg-cyan-400/20 border border-cyan-400/40 flex items-center justify-center text-cyan-400 text-xs font-bold">✓</span>
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
-        <ul className="flex flex-col gap-3">
-          {[
-            'Real-time stock & crypto prices',
-            'AI-powered news sentiment',
-            'Price alerts & watchlists',
-            'Copy top expert traders',
-          ].map((item) => (
-            <li key={item} className="flex items-center gap-3 text-gray-300 text-sm">
-              <span className="w-5 h-5 rounded-full bg-green-500/20 border border-green-500/40 flex items-center justify-center text-green-400 text-xs">✓</span>
-              {item}
-            </li>
-          ))}
-        </ul>
       </div>
 
-      {/* Right — Form */}
-      <div className="flex-1 flex items-center justify-center p-6">
+      {/* Right — Form Card */}
+      <div className="flex-1 flex items-center justify-center p-6 bg-gray-900">
         <div className="w-full max-w-md">
           <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <TrendingUp size={24} className="text-green-400" />
+            <TrendingUp size={24} className="text-cyan-400" />
             <span className="text-xl font-bold text-white">Bullox</span>
           </div>
 
-          <h1 className="text-2xl font-bold text-white mb-1">Create account</h1>
-          <p className="text-gray-400 text-sm mb-8">Get started for free — no credit card needed</p>
-
-          {apiError && (
-            <div className="mb-4 rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-400">
-              {apiError}
+          {/* Form Card */}
+          <div className="bg-white rounded-2xl shadow-2xl p-8">
+            <div className="text-center mb-8">
+              <span className="text-2xl font-bold text-cyan-500">Bullox</span>
+              <p className="text-gray-600 text-sm mt-2">Create your free account</p>
             </div>
-          )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <Input
-              label="Email"
-              type="email"
-              placeholder="you@example.com"
-              leftIcon={<Mail size={16} />}
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              error={errors.email}
-            />
-            <Input
-              label="Username"
-              type="text"
-              placeholder="johndoe"
-              leftIcon={<User size={16} />}
-              value={form.username}
-              onChange={(e) => setForm({ ...form, username: e.target.value })}
-              error={errors.username}
-            />
-            <div className="flex flex-col gap-1.5">
+            {apiError && (
+              <div className="mb-4 rounded-lg bg-red-50 border border-red-300 px-4 py-3 text-sm text-red-700">
+                {apiError}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
               <Input
-                label="Password"
-                type="password"
-                placeholder="Min 8 chars, 1 uppercase, 1 number"
-                leftIcon={<Lock size={16} />}
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                error={errors.password}
+                label="Email"
+                type="email"
+                placeholder="you@example.com"
+                leftIcon={<Mail size={16} />}
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                error={errors.email}
               />
-              {strength && (
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="flex-1 h-1 rounded-full bg-gray-700">
-                    <div className={`h-1 rounded-full transition-all ${strength.color} ${strength.width}`} />
+              <Input
+                label="Username"
+                type="text"
+                placeholder="johndoe"
+                leftIcon={<User size={16} />}
+                value={form.username}
+                onChange={(e) => setForm({ ...form, username: e.target.value })}
+                error={errors.username}
+              />
+              <div>
+                <Input
+                  label="Password"
+                  type="password"
+                  placeholder="Min 8 chars, 1 uppercase, 1 number"
+                  leftIcon={<Lock size={16} />}
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  error={errors.password}
+                />
+                {strength && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="flex-1 h-1.5 rounded-full bg-gray-300 overflow-hidden">
+                      <div className={`h-full transition-all ${strength.color} ${strength.width}`} />
+                    </div>
+                    <span className="text-xs text-gray-600 font-medium">{strength.label}</span>
                   </div>
-                  <span className="text-xs text-gray-500">{strength.label}</span>
-                </div>
-              )}
+                )}
+              </div>
+
+              <Button type="submit" loading={loading} className="w-full mt-6 bg-cyan-500 text-white hover:bg-cyan-600 border-0">
+                Create Account
+              </Button>
+            </form>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 my-6">
+              <div className="flex-1 h-px bg-gray-300"></div>
+              <span className="text-sm text-gray-500">or</span>
+              <div className="flex-1 h-px bg-gray-300"></div>
             </div>
 
-            <Button type="submit" loading={loading} className="w-full mt-2">
-              Create Account
-            </Button>
-          </form>
+            {/* Social Login */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                className="flex items-center justify-center px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                🔍 Google
+              </button>
+              <button
+                type="button"
+                className="flex items-center justify-center px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                📘 Facebook
+              </button>
+            </div>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Already have an account?{' '}
-            <Link to="/login" className="text-green-400 hover:text-green-300 font-medium">
-              Sign in
-            </Link>
-          </p>
+            {/* Footer */}
+            <div className="text-center mt-6">
+              <p className="text-sm text-gray-600">
+                Already have an account?{' '}
+                <Link to="/login" className="text-cyan-600 hover:text-cyan-700 font-semibold">
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

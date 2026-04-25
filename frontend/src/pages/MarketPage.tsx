@@ -34,85 +34,62 @@ const MOCK_CRYPTO: Quote[] = [
   { symbol: 'BNBUSDT', price: 608.5, change: 12.4,  changePercent:  2.08, high: 615.0, low: 598.0, open: 598.5, previousClose: 596.1, isCrypto: true },
 ];
 
+const MOCK_CANDLES = [
+  { time: '2026-04-15', open: 200, high: 205, low: 198, close: 202, volume: 1000000 },
+  { time: '2026-04-16', open: 202, high: 210, low: 200, close: 208, volume: 1200000 },
+  { time: '2026-04-17', open: 208, high: 215, low: 206, close: 212, volume: 1100000 },
+  { time: '2026-04-18', open: 212, high: 218, low: 210, close: 215, volume: 900000 },
+  { time: '2026-04-19', open: 215, high: 220, low: 213, close: 218, volume: 1050000 },
+  { time: '2026-04-20', open: 218, high: 222, low: 216, close: 220, volume: 1300000 },
+  { time: '2026-04-21', open: 220, high: 225, low: 218, close: 223, volume: 1150000 },
+  { time: '2026-04-22', open: 223, high: 228, low: 221, close: 226, volume: 1400000 },
+  { time: '2026-04-23', open: 226, high: 232, low: 224, close: 230, volume: 1600000 },
+  { time: '2026-04-24', open: 230, high: 235, low: 228, close: 233, volume: 1500000 },
+  { time: '2026-04-25', open: 233, high: 238, low: 231, close: 237, volume: 1700000 },
+];
+
 export default function MarketPage() {
   const [selectedSymbol, setSelectedSymbol] = useState('AAPL');
   const [interval, setInterval] = useState<CandleInterval>('D');
   const [searchQ, setSearchQ] = useState('');
   const [tab, setTab] = useState<'stocks' | 'crypto'>('stocks');
 
-  // Bulk quotes for sidebar list
-  const { data: quotesData, isLoading: quotesLoading, refetch } = useQuery({
-    queryKey: ['bulk-quotes', DEFAULT_SYMBOLS],
-    queryFn: async () => { try { return await marketApi.getBulkQuotes(DEFAULT_SYMBOLS); } catch { return null; } },
-    refetchInterval: 15000,
-  });
+  const quotesLoading = false;
+  const candleLoading = false;
 
-  // Selected symbol quote
-  const { data: quoteData } = useQuery({
-    queryKey: ['quote', selectedSymbol],
-    queryFn: async () => { try { return await marketApi.getQuote(selectedSymbol); } catch { return null; } },
-    refetchInterval: 10000,
-  });
+  const quotes: Quote[] = MOCK_QUOTES;
+  const selectedQuote: Quote | null = quotes.find(q => q.symbol === selectedSymbol) ?? MOCK_QUOTES[0];
+  const candles = MOCK_CANDLES;
+  const searchResults: SearchResult[] = [];
+  const cryptoList: Quote[] = MOCK_CRYPTO;
 
-  // Candles for chart
-  const { data: candleData, isLoading: candleLoading } = useQuery({
-    queryKey: ['candles', selectedSymbol, interval],
-    queryFn: async () => { try { return await marketApi.getCandles(selectedSymbol, interval); } catch { return null; } },
-  });
-
-  // Symbol search
-  const { data: searchData } = useQuery({
-    queryKey: ['search', searchQ],
-    queryFn: async () => { try { return await marketApi.searchSymbols(searchQ); } catch { return null; } },
-    enabled: searchQ.length >= 1,
-  });
-
-  // Top crypto
-  const { data: cryptoData } = useQuery({
-    queryKey: ['top-crypto'],
-    queryFn: async () => { try { return await marketApi.getTopCrypto(); } catch { return null; } },
-    refetchInterval: 30000,
-  });
-
-  const quotes: Quote[] = Array.isArray(quotesData?.data?.data) ? quotesData.data.data : MOCK_QUOTES;
-  const selectedQuote: Quote | null = quoteData?.data?.data ?? quotes.find(q => q.symbol === selectedSymbol) ?? MOCK_QUOTES[0];
-
-  // Transform backend candles (timestamp) to frontend format (time)
-  const rawCandles = Array.isArray(candleData?.data?.data) ? candleData.data.data : [];
-  const candles = rawCandles.map((c: any) => ({
-    time: c.timestamp,
-    open: c.open,
-    high: c.high,
-    low: c.low,
-    close: c.close,
-    volume: c.volume,
-  }));
-
-  const searchResults: SearchResult[] = Array.isArray(searchData?.data?.data) ? searchData.data.data : [];
-  const cryptoList: Quote[] = Array.isArray(cryptoData?.data?.data) ? cryptoData.data.data : MOCK_CRYPTO;
+  const refetch = () => {};
 
   return (
-    <div className="flex flex-col gap-4 h-full">
+    <div className="flex flex-col gap-4 h-full p-6 bg-gradient-to-b from-slate-50 via-white to-blue-50">
       {/* Selected symbol header */}
       {selectedQuote && (
-        <div className="rounded-xl border border-gray-800 bg-gray-900 px-5 py-4 flex flex-wrap items-center gap-4">
+        <div className="rounded-2xl border border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 flex flex-wrap items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
+          <div className="p-3 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200">
+            <TrendingUp size={20} className="text-blue-700" />
+          </div>
           <div>
-            <h2 className="text-lg font-bold text-white">{selectedQuote.symbol}</h2>
+            <h2 className="text-lg font-bold text-gray-900">{selectedQuote.symbol}</h2>
             <p className="text-xs text-gray-500">Live Quote</p>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-white">${formatPrice(selectedQuote.price)}</span>
-            <span className={cn('text-sm font-medium flex items-center gap-1', selectedQuote.changePercent >= 0 ? 'text-green-400' : 'text-red-400')}>
+            <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">${formatPrice(selectedQuote.price)}</span>
+            <span className={cn('text-sm font-bold flex items-center gap-1 px-3 py-1.5 rounded-lg', selectedQuote.changePercent >= 0 ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700' : 'bg-gradient-to-r from-red-100 to-orange-100 text-red-700')}>
               {selectedQuote.changePercent >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
               {formatPercent(selectedQuote.changePercent)}
             </span>
           </div>
-          <div className="flex gap-4 ml-auto text-xs text-gray-500">
-            <span>H: <span className="text-gray-300">${formatPrice(selectedQuote.high)}</span></span>
-            <span>L: <span className="text-gray-300">${formatPrice(selectedQuote.low)}</span></span>
-            <span>O: <span className="text-gray-300">${formatPrice(selectedQuote.open)}</span></span>
+          <div className="flex gap-4 ml-auto text-xs text-gray-600">
+            <span className="px-3 py-1.5 rounded-lg bg-white border border-gray-200">H: <span className="text-gray-900 font-bold">${formatPrice(selectedQuote.high)}</span></span>
+            <span className="px-3 py-1.5 rounded-lg bg-white border border-gray-200">L: <span className="text-gray-900 font-bold">${formatPrice(selectedQuote.low)}</span></span>
+            <span className="px-3 py-1.5 rounded-lg bg-white border border-gray-200">O: <span className="text-gray-900 font-bold">${formatPrice(selectedQuote.open)}</span></span>
           </div>
-          <button onClick={() => refetch()} className="ml-auto text-gray-500 hover:text-white transition-colors">
+          <button onClick={() => refetch()} className="ml-auto text-gray-500 hover:text-blue-600 transition-colors p-2 hover:bg-blue-100 rounded-lg">
             <RefreshCw size={16} />
           </button>
         </div>
@@ -123,40 +100,40 @@ export default function MarketPage() {
         <div className="w-64 flex-shrink-0 flex flex-col gap-3">
           {/* Search */}
           <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Search symbol..."
               value={searchQ}
               onChange={(e) => setSearchQ(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-green-500"
+              className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-white border border-gray-300 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
           {/* Search results */}
           {searchQ && searchResults.length > 0 && (
-            <div className="rounded-lg border border-gray-700 bg-gray-900 overflow-hidden">
+            <div className="rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm">
               {searchResults.slice(0, 6).map((r) => (
                 <button
                   key={r.symbol}
                   onClick={() => { setSelectedSymbol(r.symbol); setSearchQ(''); }}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors border-b border-gray-800 last:border-0"
+                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all border-b border-gray-100 last:border-0"
                 >
-                  <span className="font-medium text-white">{r.symbol}</span>
-                  <span className="text-gray-500 text-xs ml-2 truncate">{r.description}</span>
+                  <span className="font-medium text-gray-900">{r.symbol}</span>
+                  <span className="text-gray-600 text-xs ml-2 truncate">{r.description}</span>
                 </button>
               ))}
             </div>
           )}
 
           {/* Tabs */}
-          <div className="flex rounded-lg bg-gray-800 p-1 gap-1">
+          <div className="flex rounded-lg bg-gray-100 p-1 gap-1">
             {(['stocks', 'crypto'] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={cn('flex-1 py-1.5 text-xs font-medium rounded-md capitalize transition-colors',
-                  tab === t ? 'bg-gray-700 text-white' : 'text-gray-500 hover:text-gray-300'
+                className={cn('flex-1 py-2 text-xs font-bold rounded-md capitalize transition-all',
+                  tab === t ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
                 )}
               >
                 {t}
@@ -165,23 +142,25 @@ export default function MarketPage() {
           </div>
 
           {/* Symbol list */}
-          <div className="flex-1 rounded-xl border border-gray-800 bg-gray-900 overflow-y-auto">
+          <div className="flex-1 rounded-2xl border border-gray-200 bg-white overflow-y-auto shadow-sm">
             {quotesLoading && (
-              <div className="flex items-center justify-center h-20 text-gray-600 text-sm">Loading...</div>
+              <div className="flex items-center justify-center h-20 text-gray-500 text-sm">Loading...</div>
             )}
             {(tab === 'stocks' ? quotes.filter(q => !q.isCrypto) : cryptoList).map((q) => (
               <button
                 key={q.symbol}
                 onClick={() => setSelectedSymbol(q.symbol)}
                 className={cn(
-                  'w-full flex items-center justify-between px-3 py-2.5 text-sm border-b border-gray-800 last:border-0 hover:bg-gray-800/60 transition-colors',
-                  selectedSymbol === q.symbol && 'bg-green-500/5 border-l-2 border-l-green-500'
+                  'w-full flex items-center justify-between px-4 py-3 text-sm border-b border-gray-100 last:border-0 transition-all',
+                  selectedSymbol === q.symbol
+                    ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-blue-600'
+                    : 'hover:bg-gray-50'
                 )}
               >
-                <span className="font-medium text-white">{q.symbol}</span>
+                <span className="font-bold text-gray-900">{q.symbol}</span>
                 <div className="text-right">
-                  <p className="text-xs text-gray-300">${formatPrice(q.price)}</p>
-                  <p className={cn('text-xs', q.changePercent >= 0 ? 'text-green-400' : 'text-red-400')}>
+                  <p className="text-xs text-gray-900 font-bold">${formatPrice(q.price)}</p>
+                  <p className={cn('text-xs font-bold', q.changePercent >= 0 ? 'text-green-600' : 'text-red-600')}>
                     {formatPercent(q.changePercent)}
                   </p>
                 </div>
@@ -193,16 +172,16 @@ export default function MarketPage() {
         {/* Right — Chart */}
         <div className="flex-1 flex flex-col gap-3 min-w-0">
           {/* Interval selector */}
-          <div className="flex gap-1">
+          <div className="flex gap-2 flex-wrap">
             {INTERVALS.map((i) => (
               <button
                 key={i.value}
                 onClick={() => setInterval(i.value)}
                 className={cn(
-                  'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+                  'px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-sm',
                   interval === i.value
-                    ? 'bg-green-500 text-gray-950'
-                    : 'bg-gray-800 text-gray-400 hover:text-white border border-gray-700'
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
+                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
                 )}
               >
                 {i.label}
@@ -211,9 +190,9 @@ export default function MarketPage() {
           </div>
 
           {/* Chart */}
-          <div className="flex-1 rounded-xl border border-gray-800 bg-gray-900 overflow-hidden min-h-80">
+          <div className="flex-1 rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 overflow-hidden min-h-80 shadow-sm">
             {candleLoading ? (
-              <div className="flex items-center justify-center h-full text-gray-600 text-sm">
+              <div className="flex items-center justify-center h-full text-gray-500 text-sm">
                 Loading chart...
               </div>
             ) : candles.length > 0 ? (
@@ -221,7 +200,7 @@ export default function MarketPage() {
             ) : (
               <div className="flex flex-col items-center justify-center h-full gap-2">
                 <p className="text-gray-600 text-sm">No chart data</p>
-                <p className="text-gray-700 text-xs">Connect Finnhub API key to see live charts</p>
+                <p className="text-gray-500 text-xs">Connect Finnhub API key to see live charts</p>
               </div>
             )}
           </div>

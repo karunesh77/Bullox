@@ -140,15 +140,15 @@ const MOCK_TRADERS: Trader[] = [
 ];
 
 const riskConfig = {
-  LOW:    { color: 'text-green-400',  bg: 'bg-green-500/10',  border: 'border-green-500/20',  label: 'Low Risk' },
-  MEDIUM: { color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20', label: 'Med Risk' },
-  HIGH:   { color: 'text-red-400',    bg: 'bg-red-500/10',    border: 'border-red-500/20',    label: 'High Risk' },
+  LOW:    { color: 'text-green-700', bg: 'bg-green-100', border: 'border-green-300', label: 'Low Risk' },
+  MEDIUM: { color: 'text-amber-700', bg: 'bg-amber-100', border: 'border-amber-300', label: 'Med Risk' },
+  HIGH:   { color: 'text-red-700', bg: 'bg-red-100', border: 'border-red-300', label: 'High Risk' },
 };
 
 const badgeConfig = {
-  TOP:      { icon: Award,  color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30', label: 'TOP' },
-  VERIFIED: { icon: Shield, color: 'text-blue-400',   bg: 'bg-blue-500/10',   border: 'border-blue-500/30',   label: 'VERIFIED' },
-  PRO:      { icon: Zap,    color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30', label: 'PRO' },
+  TOP:      { icon: Award,  color: 'text-yellow-700', bg: 'bg-yellow-100', border: 'border-yellow-300', label: 'TOP' },
+  VERIFIED: { icon: Shield, color: 'text-blue-700',   bg: 'bg-blue-100',   border: 'border-blue-300',   label: 'VERIFIED' },
+  PRO:      { icon: Zap,    color: 'text-purple-700', bg: 'bg-purple-100', border: 'border-purple-300', label: 'PRO' },
 };
 
 function Sparkline({ data, up }: { data: number[]; up: boolean }) {
@@ -179,74 +179,73 @@ function TraderCard({ trader, onToggleFollow }: { trader: Trader; onToggleFollow
 
   return (
     <div className={cn(
-      'rounded-2xl border transition-all duration-200',
-      trader.isFollowing ? 'border-green-500/30 bg-green-500/5' : 'border-gray-800 bg-gray-900/50 hover:border-gray-700 hover:bg-gray-900'
+      'rounded-2xl border transition-all duration-200 p-5',
+      trader.isFollowing ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-300' : 'bg-white border-gray-200 hover:shadow-lg'
     )}>
-      <div className="p-5">
-        <div className="flex items-start gap-4">
-          {/* Avatar */}
-          <div className="relative flex-shrink-0">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400/20 to-emerald-600/20 border border-gray-700 flex items-center justify-center text-base font-bold text-white">
-              {trader.avatar}
+      <div className="flex items-start gap-4">
+        {/* Avatar */}
+        <div className="relative flex-shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-100 to-purple-100 border border-gray-300 flex items-center justify-center text-base font-bold text-gray-900">
+            {trader.avatar}
+          </div>
+          {trader.isFollowing && (
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
+              <UserCheck size={10} className="text-white" />
             </div>
-            {trader.isFollowing && (
-              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                <UserCheck size={10} className="text-gray-950" />
-              </div>
+          )}
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <span className="text-base font-bold text-gray-900">{trader.name}</span>
+            {badge && BadgeIcon && (
+              <span className={cn('flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold border', badge.bg, badge.border, badge.color)}>
+                <BadgeIcon size={9} />
+                {badge.label}
+              </span>
             )}
           </div>
+          <p className="text-xs text-gray-600 mb-2">{trader.username}</p>
 
-          {/* Info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap mb-0.5">
-              <span className="text-base font-bold text-white">{trader.name}</span>
-              {badge && BadgeIcon && (
-                <span className={cn('flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold border', badge.bg, badge.border, badge.color)}>
-                  <BadgeIcon size={9} />
-                  {badge.label}
-                </span>
-              )}
+          {/* Stats row */}
+          <div className="flex items-center gap-4 flex-wrap">
+            <div>
+              <p className="text-xs text-gray-600">All-time return</p>
+              <p className={cn('text-lg font-bold', up ? 'text-green-700' : 'text-red-700')}>
+                {up ? '+' : ''}{trader.returnPercent}%
+              </p>
             </div>
-            <p className="text-xs text-gray-500 mb-2">{trader.username}</p>
-
-            {/* Stats row */}
-            <div className="flex items-center gap-4 flex-wrap">
-              <div>
-                <p className="text-xs text-gray-500">All-time return</p>
-                <p className={cn('text-lg font-bold', up ? 'text-green-400' : 'text-red-400')}>
-                  {up ? '+' : ''}{trader.returnPercent}%
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">This month</p>
-                <p className={cn('text-sm font-semibold', trader.returnMonth >= 0 ? 'text-green-400' : 'text-red-400')}>
-                  {trader.returnMonth >= 0 ? '+' : ''}{trader.returnMonth}%
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">Win rate</p>
-                <p className="text-sm font-semibold text-white">{trader.winRate}%</p>
-              </div>
-              <div className="ml-auto hidden sm:block">
-                <Sparkline data={trader.chart} up={up} />
-              </div>
+            <div>
+              <p className="text-xs text-gray-600">This month</p>
+              <p className={cn('text-sm font-semibold', trader.returnMonth >= 0 ? 'text-green-700' : 'text-red-700')}>
+                {trader.returnMonth >= 0 ? '+' : ''}{trader.returnMonth}%
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-600">Win rate</p>
+              <p className="text-sm font-semibold text-gray-900">{trader.winRate}%</p>
+            </div>
+            <div className="ml-auto hidden sm:block">
+              <Sparkline data={trader.chart} up={up} />
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Bottom row */}
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-800 flex-wrap gap-3">
+      {/* Bottom row */}
+      <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 flex-wrap gap-3">
           <div className="flex items-center gap-3 flex-wrap">
             <span className={cn('px-2 py-1 rounded-lg text-xs font-medium border', risk.bg, risk.border, risk.color)}>
               {risk.label}
             </span>
-            <span className="text-xs text-gray-500 flex items-center gap-1">
-              <Star size={10} className="text-yellow-400" />
+            <span className="text-xs text-gray-700 flex items-center gap-1">
+              <Star size={10} className="text-yellow-500" />
               {trader.followers.toLocaleString()} followers
             </span>
             <div className="flex gap-1">
               {trader.topSymbols.map(s => (
-                <span key={s} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-800 text-gray-400">{s}</span>
+                <span key={s} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">{s}</span>
               ))}
             </div>
           </div>
@@ -254,7 +253,7 @@ function TraderCard({ trader, onToggleFollow }: { trader: Trader; onToggleFollow
           <div className="flex items-center gap-2">
             <button
               onClick={() => setExpanded(!expanded)}
-              className="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-gray-800 transition-all"
+              className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all"
             >
               {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
@@ -263,8 +262,8 @@ function TraderCard({ trader, onToggleFollow }: { trader: Trader; onToggleFollow
               className={cn(
                 'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95',
                 trader.isFollowing
-                  ? 'bg-gray-800 text-gray-300 hover:bg-red-500/10 hover:text-red-400 border border-gray-700'
-                  : 'bg-green-500 text-gray-950 hover:bg-green-400'
+                  ? 'bg-white text-red-700 hover:bg-red-50 border border-red-300'
+                  : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-lg'
               )}
             >
               {trader.isFollowing ? (
@@ -278,30 +277,29 @@ function TraderCard({ trader, onToggleFollow }: { trader: Trader; onToggleFollow
 
         {/* Expanded details */}
         {expanded && (
-          <div className="mt-4 pt-4 border-t border-gray-800 grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="rounded-xl bg-gray-800/50 p-3 text-center">
-              <p className="text-xs text-gray-500 mb-1">Total Trades</p>
-              <p className="text-base font-bold text-white">{trader.trades.toLocaleString()}</p>
+          <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 p-3 text-center border border-blue-200">
+              <p className="text-xs text-gray-600 mb-1">Total Trades</p>
+              <p className="text-base font-bold text-gray-900">{trader.trades.toLocaleString()}</p>
             </div>
-            <div className="rounded-xl bg-gray-800/50 p-3 text-center">
-              <p className="text-xs text-gray-500 mb-1">Max Drawdown</p>
-              <p className="text-base font-bold text-red-400">-{trader.maxDrawdown}%</p>
+            <div className="rounded-xl bg-gradient-to-br from-red-50 to-orange-50 p-3 text-center border border-red-200">
+              <p className="text-xs text-gray-600 mb-1">Max Drawdown</p>
+              <p className="text-base font-bold text-red-700">-{trader.maxDrawdown}%</p>
             </div>
-            <div className="rounded-xl bg-gray-800/50 p-3 text-center">
-              <p className="text-xs text-gray-500 mb-1">Equity</p>
-              <p className="text-base font-bold text-white">₹{(trader.equity / 100000).toFixed(1)}L</p>
+            <div className="rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 p-3 text-center border border-purple-200">
+              <p className="text-xs text-gray-600 mb-1">Equity</p>
+              <p className="text-base font-bold text-gray-900">₹{(trader.equity / 100000).toFixed(1)}L</p>
             </div>
-            <div className="rounded-xl bg-gray-800/50 p-3 text-center">
-              <p className="text-xs text-gray-500 mb-1">Win Rate</p>
-              <p className="text-base font-bold text-green-400">{trader.winRate}%</p>
+            <div className="rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 p-3 text-center border border-green-200">
+              <p className="text-xs text-gray-600 mb-1">Win Rate</p>
+              <p className="text-base font-bold text-green-700">{trader.winRate}%</p>
             </div>
-            <div className="col-span-2 sm:col-span-4 rounded-xl bg-gray-800/50 p-3">
-              <p className="text-xs text-gray-500 mb-1">About</p>
-              <p className="text-sm text-gray-300">{trader.bio}</p>
+            <div className="col-span-2 sm:col-span-4 rounded-xl bg-gray-50 p-3 border border-gray-200">
+              <p className="text-xs text-gray-600 mb-1">About</p>
+              <p className="text-sm text-gray-700">{trader.bio}</p>
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }
@@ -326,92 +324,96 @@ export default function CopyTradingPage() {
     });
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
-            <Users size={18} className="text-pink-400" />
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-purple-50 to-indigo-50 p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100">
+                <Users size={24} className="text-purple-700" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Copy Trading</h1>
+                <p className="text-sm text-gray-600">Follow top traders · Mirror their moves</p>
+              </div>
+            </div>
+
+            {following.length > 0 && (
+              <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-green-100 to-emerald-100 border border-green-300">
+                <UserCheck size={16} className="text-green-700" />
+                <span className="text-sm text-green-800 font-bold">Following {following.length} trader{following.length > 1 ? 's' : ''}</span>
+              </div>
+            )}
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white">Copy Trading</h1>
-            <p className="text-sm text-gray-500">Follow top traders · Mirror their moves</p>
+
+          {/* Stats banner */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { label: 'Top Return', value: '+421%', sub: 'Arjun Mehta', color: 'text-green-700' },
+              { label: 'Best Win Rate', value: '79%', sub: 'Sneha Patel', color: 'text-blue-700' },
+              { label: 'Most Followed', value: '15.6K', sub: 'Sneha Patel', color: 'text-purple-700' },
+            ].map((s) => (
+              <div key={s.label} className="rounded-2xl border border-gray-200 bg-white p-4 text-center hover:shadow-md transition-all">
+                <p className="text-xs text-gray-600 font-semibold mb-1">{s.label}</p>
+                <p className={cn('text-2xl font-bold', s.color)}>{s.value}</p>
+                <p className="text-xs text-gray-600 mt-1">{s.sub}</p>
+              </div>
+            ))}
           </div>
         </div>
 
-        {following.length > 0 && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-green-500/10 border border-green-500/20">
-            <UserCheck size={14} className="text-green-400" />
-            <span className="text-sm text-green-400 font-medium">Following {following.length} trader{following.length > 1 ? 's' : ''}</span>
+        {/* Filters & sort */}
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+          <div className="flex gap-2 p-1 bg-white rounded-xl border border-gray-200">
+            {(['all', 'following'] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={cn(
+                  'px-4 py-2 rounded-lg text-sm font-bold transition-all',
+                  filter === f ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100'
+                )}
+              >
+                {f === 'following' ? `Following (${following.length})` : 'All Traders'}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-gray-600 font-bold">
+            <span>Sort by:</span>
+            {([['return', 'Return'], ['winrate', 'Win Rate'], ['followers', 'Followers']] as const).map(([val, label]) => (
+              <button
+                key={val}
+                onClick={() => setSortBy(val)}
+                className={cn(
+                  'px-3 py-2 rounded-lg transition-all text-xs font-bold',
+                  sortBy === val ? 'bg-purple-600 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Traders */}
+        {sorted.length === 0 ? (
+          <div className="text-center py-20 text-gray-500">
+            <Users size={40} className="mx-auto mb-3 opacity-30" />
+            <p>Not following anyone yet</p>
+            <button onClick={() => setFilter('all')} className="mt-2 text-sm text-purple-600 hover:text-purple-700 font-bold">
+              Browse all traders
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {sorted.map((trader) => (
+              <TraderCard key={trader.id} trader={trader} onToggleFollow={toggleFollow} />
+            ))}
           </div>
         )}
       </div>
-
-      {/* Stats banner */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        {[
-          { label: 'Top Return', value: '+421%', sub: 'Arjun Mehta', color: 'text-green-400' },
-          { label: 'Best Win Rate', value: '79%', sub: 'Sneha Patel', color: 'text-blue-400' },
-          { label: 'Most Followed', value: '15.6K', sub: 'Sneha Patel', color: 'text-yellow-400' },
-        ].map((s) => (
-          <div key={s.label} className="rounded-xl border border-gray-800 bg-gray-900/50 p-4 text-center">
-            <p className="text-xs text-gray-500 mb-1">{s.label}</p>
-            <p className={cn('text-xl font-bold', s.color)}>{s.value}</p>
-            <p className="text-xs text-gray-600 mt-0.5">{s.sub}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Filters & sort */}
-      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-        <div className="flex gap-1 p-1 bg-gray-900 rounded-xl">
-          {(['all', 'following'] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={cn(
-                'px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize',
-                filter === f ? 'bg-gray-800 text-white' : 'text-gray-500 hover:text-gray-300'
-              )}
-            >
-              {f === 'following' ? `Following (${following.length})` : 'All Traders'}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2 text-xs text-gray-500">
-          <span>Sort by:</span>
-          {([['return', 'Return'], ['winrate', 'Win Rate'], ['followers', 'Followers']] as const).map(([val, label]) => (
-            <button
-              key={val}
-              onClick={() => setSortBy(val)}
-              className={cn(
-                'px-2.5 py-1 rounded-lg transition-all',
-                sortBy === val ? 'bg-gray-800 text-white' : 'text-gray-500 hover:text-gray-300'
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Traders */}
-      {sorted.length === 0 ? (
-        <div className="text-center py-20 text-gray-500">
-          <Users size={40} className="mx-auto mb-3 opacity-30" />
-          <p>Not following anyone yet</p>
-          <button onClick={() => setFilter('all')} className="mt-2 text-sm text-green-400 hover:text-green-300">
-            Browse all traders
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {sorted.map((trader) => (
-            <TraderCard key={trader.id} trader={trader} onToggleFollow={toggleFollow} />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

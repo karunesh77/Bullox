@@ -34,9 +34,9 @@ const MOCK_EVENTS: CalendarEvent[] = [
 ];
 
 const impactConfig = {
-  HIGH:   { color: 'text-red-400',    bg: 'bg-red-500/10',    border: 'border-red-500/30',    dot: 'bg-red-400',    label: 'High' },
-  MEDIUM: { color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30', dot: 'bg-yellow-400', label: 'Medium' },
-  LOW:    { color: 'text-gray-400',   bg: 'bg-gray-500/10',   border: 'border-gray-700',      dot: 'bg-gray-500',   label: 'Low' },
+  HIGH:   { color: 'text-red-700',    bg: 'bg-red-100',    border: 'border-red-300',    dot: 'bg-red-500',    label: 'High' },
+  MEDIUM: { color: 'text-amber-700', bg: 'bg-amber-100', border: 'border-amber-300', dot: 'bg-amber-500', label: 'Medium' },
+  LOW:    { color: 'text-gray-700',   bg: 'bg-gray-100',   border: 'border-gray-300',      dot: 'bg-gray-500',   label: 'Low' },
 };
 
 const IMPACT_FILTERS = [
@@ -83,22 +83,22 @@ function EventRow({ event, expanded, onToggle }: { event: CalendarEvent; expande
 
   return (
     <div className={cn(
-      'rounded-xl border transition-all',
-      expanded ? 'border-gray-700 bg-gray-900' : 'border-gray-800 bg-gray-900/40 hover:bg-gray-900/70',
-      isNear && !isPast && 'border-yellow-500/30'
+      'rounded-2xl border transition-all',
+      expanded ? 'border-blue-300 bg-gradient-to-br from-blue-50 to-cyan-50' : 'border-gray-200 bg-white hover:shadow-md',
+      isNear && !isPast && 'border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50'
     )}>
-      <button className="w-full text-left px-4 py-3.5 flex items-center gap-3" onClick={onToggle}>
+      <button className="w-full text-left px-5 py-4 flex items-center gap-3" onClick={onToggle}>
         {/* Impact dot */}
-        <div className={cn('w-2.5 h-2.5 rounded-full flex-shrink-0', cfg.dot)} />
+        <div className={cn('w-3 h-3 rounded-full flex-shrink-0', cfg.dot)} />
 
         {/* Flag + country */}
-        <span className="text-lg flex-shrink-0">{event.countryFlag}</span>
+        <span className="text-xl flex-shrink-0">{event.countryFlag}</span>
 
         {/* Time */}
         <div className="flex-shrink-0 text-right w-20">
-          <p className="text-xs font-medium text-white">{formatEventTime(event.date)}</p>
+          <p className="text-xs font-bold text-gray-900">{formatEventTime(event.date)}</p>
           {!isPast ? (
-            <p className="text-[10px] text-yellow-400 flex items-center gap-0.5">
+            <p className="text-[10px] text-amber-600 font-semibold flex items-center justify-end gap-0.5">
               <Clock size={8} /> <Countdown iso={event.date} />
             </p>
           ) : (
@@ -108,37 +108,37 @@ function EventRow({ event, expanded, onToggle }: { event: CalendarEvent; expande
 
         {/* Title */}
         <div className="flex-1 min-w-0">
-          <p className={cn('text-sm font-medium truncate', isPast ? 'text-gray-400' : 'text-white')}>
+          <p className={cn('text-sm font-bold truncate', isPast ? 'text-gray-500' : 'text-gray-900')}>
             {event.title}
           </p>
-          <p className="text-xs text-gray-500">{event.category}</p>
+          <p className="text-xs text-gray-600">{event.category}</p>
         </div>
 
         {/* Impact badge */}
-        <span className={cn('hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border flex-shrink-0', cfg.bg, cfg.border, cfg.color)}>
-          {event.impact === 'HIGH' && <Flame size={10} />}
+        <span className={cn('hidden sm:flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-bold border flex-shrink-0', cfg.bg, cfg.border, cfg.color)}>
+          {event.impact === 'HIGH' && <Flame size={11} />}
           {cfg.label}
         </span>
 
         {/* Actual result */}
         {event.actual ? (
-          <span className="text-sm font-semibold text-green-400 flex-shrink-0 w-16 text-right">{event.actual}</span>
+          <span className="text-sm font-bold text-green-700 flex-shrink-0 w-16 text-right">{event.actual}</span>
         ) : (
-          <span className="text-xs text-gray-600 flex-shrink-0 w-16 text-right">Pending</span>
+          <span className="text-xs text-gray-500 flex-shrink-0 w-16 text-right">Pending</span>
         )}
 
-        {expanded ? <ChevronUp size={14} className="text-gray-500 flex-shrink-0" /> : <ChevronDown size={14} className="text-gray-500 flex-shrink-0" />}
+        {expanded ? <ChevronUp size={16} className="text-gray-600 flex-shrink-0" /> : <ChevronDown size={16} className="text-gray-600 flex-shrink-0" />}
       </button>
 
       {expanded && (
-        <div className="px-4 pb-4 grid grid-cols-3 gap-3 border-t border-gray-800 pt-3">
+        <div className="px-5 pb-5 grid grid-cols-3 gap-3 border-t border-gray-200 pt-4">
           {[
-            { label: 'Forecast', value: event.forecast ?? '—', color: 'text-blue-400' },
-            { label: 'Previous', value: event.previous ?? '—', color: 'text-gray-300' },
-            { label: 'Actual',   value: event.actual ?? '—',   color: event.actual ? 'text-green-400' : 'text-gray-500' },
+            { label: 'Forecast', value: event.forecast ?? '—', color: 'text-blue-700' },
+            { label: 'Previous', value: event.previous ?? '—', color: 'text-gray-700' },
+            { label: 'Actual',   value: event.actual ?? '—',   color: event.actual ? 'text-green-700' : 'text-gray-600' },
           ].map((s) => (
-            <div key={s.label} className="rounded-lg bg-gray-800/50 p-3 text-center">
-              <p className="text-xs text-gray-500 mb-1">{s.label}</p>
+            <div key={s.label} className="rounded-lg bg-gradient-to-br from-gray-100 to-gray-50 p-3 text-center border border-gray-200">
+              <p className="text-xs text-gray-600 font-semibold mb-1">{s.label}</p>
               <p className={cn('text-base font-bold', s.color)}>{s.value}</p>
             </div>
           ))}
@@ -194,40 +194,41 @@ export default function CalendarPage() {
   const upcomingHigh = events.filter(e => e.impact === 'HIGH' && new Date(e.date) > new Date()).length;
 
   return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-orange-50 to-red-50 p-6">
     <div className="max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
-            <Calendar size={18} className="text-orange-400" />
+        <div className="flex items-center gap-4">
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-orange-100 to-red-100">
+            <Calendar size={24} className="text-orange-700" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Economic Calendar</h1>
-            <p className="text-sm text-gray-500">Global macro events · Impact rated</p>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">Economic Calendar</h1>
+            <p className="text-sm text-gray-600">Global macro events · Impact rated</p>
           </div>
         </div>
 
         {upcomingHigh > 0 && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20">
-            <Flame size={14} className="text-red-400" />
-            <span className="text-sm text-red-400 font-medium">{upcomingHigh} high-impact events today</span>
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-red-100 to-orange-100 border border-red-300 shadow-sm">
+            <Flame size={16} className="text-red-600" />
+            <span className="text-sm text-red-700 font-bold">{upcomingHigh} high-impact events today</span>
           </div>
         )}
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-2 mb-6">
-        <Globe size={14} className="text-gray-500" />
-        <span className="text-xs text-gray-500 uppercase tracking-wider mr-1">Impact</span>
+      <div className="flex items-center gap-3 mb-8 pb-6 border-b border-gray-300">
+        <Globe size={16} className="text-gray-600" />
+        <span className="text-xs text-gray-600 uppercase tracking-wider font-bold">Impact</span>
         {IMPACT_FILTERS.map((f) => (
           <button
             key={f.value}
             onClick={() => setImpactFilter(f.value)}
             className={cn(
-              'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+              'px-4 py-2 rounded-lg text-xs font-bold transition-all',
               impactFilter === f.value
-                ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800 border border-transparent'
+                ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md'
+                : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-400'
             )}
           >
             {f.label}
@@ -236,7 +237,7 @@ export default function CalendarPage() {
       </div>
 
       {/* Column headers */}
-      <div className="hidden sm:grid grid-cols-[20px_32px_80px_1fr_80px_60px_24px] gap-3 px-4 mb-2 text-xs text-gray-600 uppercase tracking-wider">
+      <div className="hidden sm:grid grid-cols-[20px_32px_80px_1fr_80px_60px_24px] gap-3 px-5 mb-3 text-xs text-gray-700 uppercase tracking-wider font-bold">
         <span></span><span></span><span>Time</span><span>Event</span><span>Impact</span><span className="text-right">Actual</span><span></span>
       </div>
 
@@ -244,17 +245,17 @@ export default function CalendarPage() {
       <div className="space-y-8">
         {groups.map((group) => (
           <div key={group.label}>
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex items-center gap-3 mb-4">
               <span className={cn(
-                'text-sm font-semibold px-2 py-0.5 rounded-md',
-                group.label === 'Today' ? 'bg-green-500/10 text-green-400' : 'text-gray-400'
+                'text-sm font-bold px-3 py-1 rounded-lg',
+                group.label === 'Today' ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800' : 'bg-gray-100 text-gray-700'
               )}>
                 {group.label}
               </span>
-              <div className="flex-1 h-px bg-gray-800" />
-              <span className="text-xs text-gray-600">{group.events.length} events</span>
+              <div className="flex-1 h-px bg-gray-300" />
+              <span className="text-xs text-gray-700 font-semibold">{group.events.length} events</span>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {group.events.map((event) => (
                 <EventRow
                   key={event.id}
@@ -267,6 +268,7 @@ export default function CalendarPage() {
           </div>
         ))}
       </div>
+    </div>
     </div>
   );
 }

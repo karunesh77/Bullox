@@ -22,11 +22,11 @@ export default function Button({
         'flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         variant === 'primary' &&
-          'bg-green-500 text-gray-950 hover:bg-green-400 active:scale-95',
+          'bg-blue-600 text-white hover:bg-blue-700 active:scale-95',
         variant === 'outline' &&
-          'border border-gray-600 text-gray-300 hover:bg-gray-800 hover:border-gray-500',
+          'border border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-400',
         variant === 'ghost' &&
-          'text-gray-400 hover:text-white hover:bg-gray-800',
+          'text-gray-600 hover:text-gray-900 hover:bg-gray-100',
         className
       )}
       {...props}
