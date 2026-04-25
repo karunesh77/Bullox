@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import {
-  TrendingUp, TrendingDown, Bell, BookMarked,
-  Newspaper, Users, ArrowRight, Activity,
-  Flame, Clock, Crown
+  TrendingUp, TrendingDown, Newspaper,
+  ArrowRight, Activity, Flame, Clock, Crown
 } from 'lucide-react';
 import {
   AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis

@@ -5,7 +5,6 @@ import { useAuthStore } from '@/store/authStore';
 import { authApi } from '@/api/auth';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { cn } from '@/lib/utils';
 
 export default function RegisterPage() {
   const navigate = useNavigate();

@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { TrendingUp, TrendingDown, Search, RefreshCw } from 'lucide-react';
-import { marketApi } from '@/api/market';
 interface Quote { symbol: string; price: number; change: number; changePercent: number; high: number; low: number; open: number; previousClose: number; volume?: number; isCrypto?: boolean; }
 interface SearchResult { symbol: string; description: string; type: string; }
 type CandleInterval = '1' | '5' | '15' | '30' | '60' | 'D' | 'W';
@@ -16,8 +14,6 @@ const INTERVALS: { label: string; value: CandleInterval }[] = [
   { label: '1D', value: 'D' },
   { label: '1W', value: 'W' },
 ];
-
-const DEFAULT_SYMBOLS = ['AAPL', 'TSLA', 'NVDA', 'MSFT', 'GOOGL', 'BTCUSDT', 'ETHUSDT'];
 
 const MOCK_QUOTES: Quote[] = [
   { symbol: 'AAPL',    price: 213.18, change: -1.15,  changePercent: -0.54, high: 215.40, low: 211.80, open: 214.60, previousClose: 214.33 },

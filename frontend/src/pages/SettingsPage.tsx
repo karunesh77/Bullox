@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Settings, Bell, Lock, Eye, User, CreditCard, LogOut, ChevronRight, ToggleRight, Mail } from 'lucide-react';
+import { Settings, Bell, Lock, Eye, User, LogOut, ToggleRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SettingSection {

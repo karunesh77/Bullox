@@ -1,9 +1,7 @@
-import { useState } from 'react';
 import { CreditCard, Check, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function BillingPage() {
-  const [billingPeriod, setBillingPeriod] = useState('monthly');
 
   const plans = [
     {

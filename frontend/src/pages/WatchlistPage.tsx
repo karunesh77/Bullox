@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { BookMarked, TrendingUp, TrendingDown, Trash2, Search } from 'lucide-react';
-import api from '@/api/axios';
+import { BookMarked, TrendingUp, TrendingDown, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface WatchlistItem {

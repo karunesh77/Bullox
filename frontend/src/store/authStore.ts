@@ -18,32 +18,27 @@ interface AuthStore {
   logout: () => void;
 }
 
-export const useAuthStore = create<AuthStore>(
-  persist(
-    (set) => ({
-      user: null,
-      accessToken: null,
-      isAuthenticated: false,
-
-      setAuth: (user, accessToken, refreshToken) => {
-        localStorage.setItem('refreshToken', refreshToken);
-        set({ user, accessToken, isAuthenticated: true });
-      },
-
-      setUser: (user) => set({ user }),
-
-      logout: () => {
-        localStorage.removeItem('refreshToken');
-        set({ user: null, accessToken: null, isAuthenticated: false });
-      },
+export const useAuthStore = create<AuthStore>(persist(
+  (set) => ({
+    user: null,
+    accessToken: null,
+    isAuthenticated: false,
+    setAuth: (user, accessToken, refreshToken) => {
+      localStorage.setItem('refreshToken', refreshToken);
+      set({ user, accessToken, isAuthenticated: true });
+    },
+    setUser: (user) => set({ user }),
+    logout: () => {
+      localStorage.removeItem('refreshToken');
+      set({ user: null, accessToken: null, isAuthenticated: false });
+    },
+  } as AuthStore),
+  {
+    name: 'auth-store',
+    partialize: (state) => ({
+      user: state.user,
+      accessToken: state.accessToken,
+      isAuthenticated: state.isAuthenticated,
     }),
-    {
-      name: 'auth-store',
-      partialize: (state) => ({
-        user: state.user,
-        accessToken: state.accessToken,
-        isAuthenticated: state.isAuthenticated,
-      }),
-    }
-  )
-);
+  }
+));
