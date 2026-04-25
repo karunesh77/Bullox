@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Bell, Plus, X, AlertCircle, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
+import { Bell, Plus, X, CheckCircle } from 'lucide-react';
 import api from '@/api/axios';
 import { cn } from '@/lib/utils';
 

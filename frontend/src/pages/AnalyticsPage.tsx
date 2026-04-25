@@ -1,6 +1,4 @@
-import { useState } from 'react';
-import { BarChart3, TrendingUp, Calendar, Filter } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { BarChart3 } from 'lucide-react';
 
 export default function AnalyticsPage() {
   return (
