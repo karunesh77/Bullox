@@ -1,16 +1,35 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Search, RefreshCw } from 'lucide-react';
-interface Quote { symbol: string; price: number; change: number; changePercent: number; high: number; low: number; open: number; previousClose: number; volume?: number; isCrypto?: boolean; basePrice?: number; }
-interface SearchResult { symbol: string; description: string; type: string; }
-type CandleInterval = '1' | '5' | '15' | '30' | '60' | 'D' | 'W';
-import { formatPrice, formatPercent, cn } from '@/lib/utils';
-import CandleChart from '@/components/market/CandleChart';
+import PortfolioChart from '@/components/charts/PortfolioChart';
 
-// Real-time mock price generator
-const generateMockPrice = (basePrice: number, volatility: number = 0.02): number => {
-  const change = (Math.random() - 0.5) * volatility * basePrice;
-  return Math.round((basePrice + change) * 100) / 100;
-};
+/* ─── Colors ─────────────────────────────────────────── */
+const BG        = '#0B0F19';
+const CARD      = '#111827';
+const ELEVATED  = '#1F2937';
+const BORDER    = '#1F2937';
+const TEXT1     = '#E5E7EB';
+const TEXT2     = '#9CA3AF';
+const TEXT3     = '#6B7280';
+const GREEN     = '#22C55E';
+const RED       = '#EF4444';
+const BLUE      = '#3B82F6';
+
+interface Quote {
+  symbol: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  high: number;
+  low: number;
+  open: number;
+  previousClose: number;
+  basePrice?: number;
+}
+
+type CandleInterval = '1' | '5' | '15' | '30' | '60' | 'D' | 'W';
+
+const generateMockPrice = (basePrice: number, vol = 0.02) =>
+  Math.round((basePrice + (Math.random() - 0.5) * vol * basePrice) * 100) / 100;
 
 const INTERVALS: { label: string; value: CandleInterval }[] = [
   { label: '1m', value: '1' },
@@ -30,25 +49,25 @@ const BASE_QUOTES: (Quote & { basePrice: number })[] = [
 ];
 
 const BASE_CRYPTO: (Quote & { basePrice: number })[] = [
-  { symbol: 'BTCUSDT', basePrice: 76243, price: 76243, change: 1820,  changePercent:  2.44, high: 77100, low: 74800, open: 74900, previousClose: 74423, isCrypto: true },
-  { symbol: 'ETHUSDT', basePrice: 2332,  price: 2332,  change: -28,   changePercent: -1.20, high: 2390,  low: 2310,  open: 2365,  previousClose: 2360,  isCrypto: true },
-  { symbol: 'SOLUSDT', basePrice: 183.4, price: 183.4, change: 9.8,   changePercent:  5.67, high: 186.2, low: 175.0, open: 175.2, previousClose: 173.6, isCrypto: true },
-  { symbol: 'BNBUSDT', basePrice: 608.5, price: 608.5, change: 12.4,  changePercent:  2.08, high: 615.0, low: 598.0, open: 598.5, previousClose: 596.1, isCrypto: true },
+  { symbol: 'BTC/USDT', basePrice: 76243, price: 76243, change: 1820,  changePercent:  2.44, high: 77100, low: 74800, open: 74900, previousClose: 74423 },
+  { symbol: 'ETH/USDT', basePrice: 2332,  price: 2332,  change: -28,   changePercent: -1.20, high: 2390,  low: 2310,  open: 2365,  previousClose: 2360 },
+  { symbol: 'SOL/USDT', basePrice: 183.4, price: 183.4, change: 9.8,   changePercent:  5.67, high: 186.2, low: 175.0, open: 175.2, previousClose: 173.6 },
+  { symbol: 'BNB/USDT', basePrice: 608.5, price: 608.5, change: 12.4,  changePercent:  2.08, high: 615.0, low: 598.0, open: 598.5, previousClose: 596.1 },
 ];
 
-const MOCK_CANDLES = [
-  { time: 1713139200, open: 200, high: 205, low: 198, close: 202, volume: 1000000 },
-  { time: 1713225600, open: 202, high: 210, low: 200, close: 208, volume: 1200000 },
-  { time: 1713312000, open: 208, high: 215, low: 206, close: 212, volume: 1100000 },
-  { time: 1713398400, open: 212, high: 218, low: 210, close: 215, volume: 900000 },
-  { time: 1713484800, open: 215, high: 220, low: 213, close: 218, volume: 1050000 },
-  { time: 1713571200, open: 218, high: 222, low: 216, close: 220, volume: 1300000 },
-  { time: 1713657600, open: 220, high: 225, low: 218, close: 223, volume: 1150000 },
-  { time: 1713744000, open: 223, high: 228, low: 221, close: 226, volume: 1400000 },
-  { time: 1713830400, open: 226, high: 232, low: 224, close: 230, volume: 1600000 },
-  { time: 1713916800, open: 230, high: 235, low: 228, close: 233, volume: 1500000 },
-  { time: 1714003200, open: 233, high: 238, low: 231, close: 237, volume: 1700000 },
-];
+// Mock chart data
+const generateChartData = () => {
+  const data = [];
+  let baseValue = 100000;
+  for (let i = 0; i < 24; i++) {
+    baseValue += (Math.random() - 0.5) * baseValue * 0.02;
+    data.push({
+      time: `${String(i).padStart(2, '0')}:00`,
+      value: Math.round(baseValue),
+    });
+  }
+  return data;
+};
 
 export default function MarketPage() {
   const [selectedSymbol, setSelectedSymbol] = useState('AAPL');
@@ -57,13 +76,11 @@ export default function MarketPage() {
   const [tab, setTab] = useState<'stocks' | 'crypto'>('stocks');
   const [quotes, setQuotes] = useState<Quote[]>(BASE_QUOTES);
   const [cryptoList, setCryptoList] = useState<Quote[]>(BASE_CRYPTO);
+  const [chartData] = useState(generateChartData());
 
-  const quotesLoading = false;
-  const candleLoading = false;
-
-  // Real-time price updates every 3 seconds
+  // Real-time price updates
   useEffect(() => {
-    const intervalId = setInterval(() => {
+    const id = setInterval(() => {
       setQuotes(prev =>
         prev.map(q => ({
           ...q,
@@ -77,156 +94,159 @@ export default function MarketPage() {
         }))
       );
     }, 3000);
-
-    return () => clearInterval(intervalId);
+    return () => clearInterval(id);
   }, []);
 
-  const selectedQuote: Quote | null = quotes.find(q => q.symbol === selectedSymbol) || (quotes.length > 0 ? quotes[0] : null);
-  const candles = MOCK_CANDLES;
-  const searchResults: SearchResult[] = [];
-
-  const refetch = () => {};
+  const selectedQuote = [...quotes, ...cryptoList].find(q => q.symbol === selectedSymbol) || quotes[0];
+  const filteredList = tab === 'stocks' ? quotes : cryptoList;
+  const filteredBySearch = filteredList.filter(q => q.symbol.toLowerCase().includes(searchQ.toLowerCase()));
 
   return (
-    <div className="flex flex-col gap-4 h-full p-6 bg-gradient-to-b from-slate-50 via-white to-blue-50">
-      {/* Selected symbol header */}
-      {selectedQuote && (
-        <div className="rounded-2xl border border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 flex flex-wrap items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
-          <div className="p-3 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200">
-            <TrendingUp size={20} className="text-blue-700" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">{selectedQuote.symbol}</h2>
-            <p className="text-xs text-gray-500">Live Quote</p>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">${formatPrice(selectedQuote.price)}</span>
-            <span className={cn('text-sm font-bold flex items-center gap-1 px-3 py-1.5 rounded-lg', selectedQuote.changePercent >= 0 ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700' : 'bg-gradient-to-r from-red-100 to-orange-100 text-red-700')}>
-              {selectedQuote.changePercent >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-              {formatPercent(selectedQuote.changePercent)}
-            </span>
-          </div>
-          <div className="flex gap-4 ml-auto text-xs text-gray-600">
-            <span className="px-3 py-1.5 rounded-lg bg-white border border-gray-200">H: <span className="text-gray-900 font-bold">${formatPrice(selectedQuote.high)}</span></span>
-            <span className="px-3 py-1.5 rounded-lg bg-white border border-gray-200">L: <span className="text-gray-900 font-bold">${formatPrice(selectedQuote.low)}</span></span>
-            <span className="px-3 py-1.5 rounded-lg bg-white border border-gray-200">O: <span className="text-gray-900 font-bold">${formatPrice(selectedQuote.open)}</span></span>
-          </div>
-          <button onClick={() => refetch()} className="ml-auto text-gray-500 hover:text-blue-600 transition-colors p-2 hover:bg-blue-100 rounded-lg">
-            <RefreshCw size={16} />
-          </button>
-        </div>
-      )}
+    <div style={{ backgroundColor: BG }} className="min-h-screen p-4">
+      <div className="max-w-7xl mx-auto h-full flex flex-col gap-4">
 
-      <div className="flex gap-4 flex-1 min-h-0">
-        {/* Left — Symbol List */}
-        <div className="w-64 flex-shrink-0 flex flex-col gap-3">
-          {/* Search */}
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search symbol..."
-              value={searchQ}
-              onChange={(e) => setSearchQ(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-white border border-gray-300 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          {/* Search results */}
-          {searchQ && searchResults.length > 0 && (
-            <div className="rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm">
-              {searchResults.slice(0, 6).map((r) => (
-                <button
-                  key={r.symbol}
-                  onClick={() => { setSelectedSymbol(r.symbol); setSearchQ(''); }}
-                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all border-b border-gray-100 last:border-0"
+        {/* ── Header with Quote ─────────────────── */}
+        {selectedQuote && (
+          <div style={{ backgroundColor: CARD, borderColor: BORDER }} className="border rounded-2xl p-4">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <p style={{ color: TEXT2 }} className="text-xs font-semibold uppercase mb-1">Market Quote</p>
+                <h2 style={{ color: TEXT1 }} className="text-2xl font-bold">{selectedQuote.symbol}</h2>
+              </div>
+              <div>
+                <p style={{ color: TEXT1 }} className="text-3xl font-bold">
+                  ${selectedQuote.price.toLocaleString('en-US', { maximumFractionDigits: 2 })}
+                </p>
+                <p
+                  style={{ color: selectedQuote.changePercent >= 0 ? GREEN : RED }}
+                  className="text-sm font-bold flex items-center gap-1 mt-1"
                 >
-                  <span className="font-medium text-gray-900">{r.symbol}</span>
-                  <span className="text-gray-600 text-xs ml-2 truncate">{r.description}</span>
+                  {selectedQuote.changePercent >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                  {selectedQuote.changePercent >= 0 ? '+' : ''}{selectedQuote.changePercent.toFixed(2)}%
+                </p>
+              </div>
+              <div className="flex gap-3 text-sm ml-auto">
+                <div style={{ backgroundColor: ELEVATED }} className="px-3 py-2 rounded-lg">
+                  <p style={{ color: TEXT3 }} className="text-xs mb-1">High</p>
+                  <p style={{ color: TEXT1 }} className="font-bold">${selectedQuote.high.toLocaleString('en-US', { maximumFractionDigits: 2 })}</p>
+                </div>
+                <div style={{ backgroundColor: ELEVATED }} className="px-3 py-2 rounded-lg">
+                  <p style={{ color: TEXT3 }} className="text-xs mb-1">Low</p>
+                  <p style={{ color: TEXT1 }} className="font-bold">${selectedQuote.low.toLocaleString('en-US', { maximumFractionDigits: 2 })}</p>
+                </div>
+                <div style={{ backgroundColor: ELEVATED }} className="px-3 py-2 rounded-lg">
+                  <p style={{ color: TEXT3 }} className="text-xs mb-1">Open</p>
+                  <p style={{ color: TEXT1 }} className="font-bold">${selectedQuote.open.toLocaleString('en-US', { maximumFractionDigits: 2 })}</p>
+                </div>
+              </div>
+              <button style={{ backgroundColor: ELEVATED, color: TEXT2 }} className="p-2.5 rounded-lg hover:text-white transition-all">
+                <RefreshCw size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Main Grid ─────────────────────── */}
+        <div className="flex gap-4 flex-1">
+
+          {/* ── Left: Symbol List ──────────────── */}
+          <div style={{ backgroundColor: CARD, borderColor: BORDER }} className="w-64 border rounded-2xl flex flex-col overflow-hidden">
+            {/* Search */}
+            <div className="p-3 border-b" style={{ borderColor: BORDER }}>
+              <div className="relative">
+                <Search size={14} style={{ color: TEXT3 }} className="absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQ}
+                  onChange={e => setSearchQ(e.target.value)}
+                  style={{ backgroundColor: ELEVATED, borderColor: BORDER, color: TEXT1 }}
+                  className="w-full pl-9 pr-3 py-2 rounded-lg border text-sm placeholder-shown:text-gray-600 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <div style={{ backgroundColor: ELEVATED }} className="flex p-1.5 gap-1 mx-3 mt-3 rounded-lg">
+              {(['stocks', 'crypto'] as const).map(t => (
+                <button
+                  key={t}
+                  onClick={() => { setTab(t); setSelectedSymbol(t === 'stocks' ? quotes[0].symbol : cryptoList[0].symbol); }}
+                  style={tab === t
+                    ? { backgroundColor: BLUE, color: '#fff' }
+                    : { color: TEXT2 }
+                  }
+                  className="flex-1 py-1 text-xs font-bold rounded-md transition-all"
+                >
+                  {t === 'stocks' ? 'Stocks' : 'Crypto'}
                 </button>
               ))}
             </div>
-          )}
 
-          {/* Tabs */}
-          <div className="flex rounded-lg bg-gray-100 p-1 gap-1">
-            {(['stocks', 'crypto'] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={cn('flex-1 py-2 text-xs font-bold rounded-md capitalize transition-all',
-                  tab === t ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
-                )}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-
-          {/* Symbol list */}
-          <div className="flex-1 rounded-2xl border border-gray-200 bg-white overflow-y-auto shadow-sm">
-            {quotesLoading && (
-              <div className="flex items-center justify-center h-20 text-gray-500 text-sm">Loading...</div>
-            )}
-            {(tab === 'stocks' ? quotes.filter(q => !q.isCrypto) : cryptoList).map((q) => (
-              <button
-                key={q.symbol}
-                onClick={() => setSelectedSymbol(q.symbol)}
-                className={cn(
-                  'w-full flex items-center justify-between px-4 py-3 text-sm border-b border-gray-100 last:border-0 transition-all',
-                  selectedSymbol === q.symbol
-                    ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-blue-600'
-                    : 'hover:bg-gray-50'
-                )}
-              >
-                <span className="font-bold text-gray-900">{q.symbol}</span>
-                <div className="text-right">
-                  <p className="text-xs text-gray-900 font-bold">${formatPrice(q.price)}</p>
-                  <p className={cn('text-xs font-bold', q.changePercent >= 0 ? 'text-green-600' : 'text-red-600')}>
-                    {formatPercent(q.changePercent)}
-                  </p>
+            {/* Symbol List */}
+            <div className="flex-1 overflow-y-auto">
+              {filteredBySearch.length === 0 ? (
+                <div className="py-4 px-3">
+                  <p style={{ color: TEXT3 }} className="text-xs text-center">No results</p>
                 </div>
-              </button>
-            ))}
+              ) : (
+                filteredBySearch.map(q => (
+                  <button
+                    key={q.symbol}
+                    onClick={() => setSelectedSymbol(q.symbol)}
+                    style={{
+                      backgroundColor: selectedSymbol === q.symbol ? ELEVATED : 'transparent',
+                      borderColor: BORDER,
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2.5 border-b text-sm transition-all hover:bg-opacity-50"
+                  >
+                    <div className="text-left">
+                      <p style={{ color: TEXT1 }} className="font-bold text-xs">{q.symbol}</p>
+                    </div>
+                    <div className="text-right">
+                      <p style={{ color: TEXT1 }} className="font-bold text-xs">${q.price.toLocaleString('en-US', { maximumFractionDigits: 2 })}</p>
+                      <p style={{ color: q.changePercent >= 0 ? GREEN : RED }} className="text-[10px] font-bold">
+                        {q.changePercent >= 0 ? '+' : ''}{q.changePercent.toFixed(2)}%
+                      </p>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
           </div>
+
+          {/* ── Right: Chart ────────────────────── */}
+          <div className="flex-1 flex flex-col gap-3">
+            {/* Interval Buttons */}
+            <div className="flex gap-2 flex-wrap">
+              {INTERVALS.map(i => (
+                <button
+                  key={i.value}
+                  onClick={() => setSelectedInterval(i.value)}
+                  style={selectedInterval === i.value
+                    ? { backgroundColor: BLUE, color: '#fff' }
+                    : { backgroundColor: CARD, borderColor: BORDER, color: TEXT2 }
+                  }
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold border transition-all"
+                >
+                  {i.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Chart */}
+            <div className="flex-1 min-h-0">
+              <PortfolioChart
+                data={chartData}
+                title={`${selectedSymbol} Market`}
+                subtitle="24-hour trading activity"
+                showTimeFilters={false}
+              />
+            </div>
+          </div>
+
         </div>
 
-        {/* Right — Chart */}
-        <div className="flex-1 flex flex-col gap-3 min-w-0">
-          {/* Interval selector */}
-          <div className="flex gap-2 flex-wrap">
-            {INTERVALS.map((i) => (
-              <button
-                key={i.value}
-                onClick={() => setSelectedInterval(i.value)}
-                className={cn(
-                  'px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-sm',
-                  selectedInterval === i.value
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
-                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                )}
-              >
-                {i.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Chart */}
-          <div className="flex-1 rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 overflow-hidden min-h-80 shadow-sm">
-            {candleLoading ? (
-              <div className="flex items-center justify-center h-full text-gray-500 text-sm">
-                Loading chart...
-              </div>
-            ) : candles.length > 0 ? (
-              <CandleChart candles={candles} symbol={selectedSymbol} />
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full gap-2">
-                <p className="text-gray-600 text-sm">No chart data</p>
-                <p className="text-gray-500 text-xs">Connect Finnhub API key to see live charts</p>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -4,46 +4,60 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Dark theme base colors
-        'dark-bg': '#1f1f2e',
-        'dark-card': '#111827',
-        'dark-card-hover': '#1f2937',
-        'dark-border': '#2d3748',
+        // ── Base Backgrounds ─────────────────────────────
+        'bg-base':      '#0B0F19',   // main page background
+        'bg-card':      '#111827',   // card surfaces
+        'bg-card-hover':'#1A2233',   // card hover lift
+        'bg-elevated':  '#1F2937',   // inputs, inner panels
 
-        // Brand colors
-        'primary': '#8871ff',
-        'primary-dark': '#6c5ce7',
-        'primary-light': '#a29bff',
+        // ── Borders / Dividers ────────────────────────────
+        'border-base':  '#1F2937',
 
-        // Status colors
-        'success': '#22c55e',
-        'success-light': '#86efac',
-        'danger': '#ef4444',
-        'danger-light': '#fca5a5',
-        'warning': '#f59e0b',
-        'warning-light': '#fcd34d',
+        // ── Brand Blue ────────────────────────────────────
+        'blue':         '#3B82F6',
+        'blue-hover':   '#2563EB',
 
-        // Chart colors
-        'chart-green': '#10b981',
-        'chart-red': '#ef4444',
+        // ── Text Hierarchy ────────────────────────────────
+        'text-primary':   '#E5E7EB',
+        'text-secondary': '#9CA3AF',
+        'text-muted':     '#6B7280',
+
+        // ── Profit / Loss ────────────────────────────────
+        'profit':         '#22C55E',
+        'loss':           '#EF4444',
+
+        // ── Accent ───────────────────────────────────────
+        'accent-yellow':  '#F59E0B',
+
+        // ── Legacy keys (used in older components) ────────
+        'dark-bg':        '#0B0F19',
+        'dark-card':      '#111827',
+        'dark-card-hover':'#1A2233',
+        'dark-border':    '#1F2937',
+        'primary':        '#3B82F6',
+        'primary-dark':   '#2563EB',
+        'success':        '#22C55E',
+        'danger':         '#EF4444',
+        'warning':        '#F59E0B',
       },
       backgroundColor: {
-        'dark': '#1f1f2e',
+        'dark':           '#0B0F19',
         'dark-secondary': '#111827',
-        'dark-tertiary': '#1f2937',
+        'dark-tertiary':  '#1F2937',
       },
       borderColor: {
-        'dark': '#2d3748',
+        'dark': '#1F2937',
       },
       textColor: {
-        'dark-primary': '#f3f4f6',
-        'dark-secondary': '#d1d5db',
-        'dark-tertiary': '#9ca3af',
+        'dark-primary':   '#E5E7EB',
+        'dark-secondary': '#9CA3AF',
+        'dark-tertiary':  '#6B7280',
       },
       boxShadow: {
-        'dark': '0 4px 6px rgba(0, 0, 0, 0.3)',
-        'dark-lg': '0 10px 25px rgba(0, 0, 0, 0.4)',
-        'dark-sm': '0 1px 3px rgba(0, 0, 0, 0.2)',
+        'card':    '0 4px 24px rgba(0,0,0,0.4)',
+        'card-lg': '0 8px 40px rgba(0,0,0,0.55)',
+        'blue':    '0 4px 20px rgba(59,130,246,0.25)',
+        'green':   '0 4px 20px rgba(34,197,94,0.20)',
       },
     },
   },

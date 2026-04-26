@@ -2,393 +2,556 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import {
-  TrendingUp, TrendingDown, Newspaper, Activity, Flame, Crown, Eye, BarChart3
+  TrendingUp, TrendingDown, Activity, Flame, Plus,
+  Newspaper, Eye
 } from 'lucide-react';
-import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { cn } from '@/lib/utils';
+import PortfolioChart from '@/components/charts/PortfolioChart';
 
-// Real-time mock price generator
-const generateMockPrice = (basePrice: number, volatility: number = 0.02): number => {
-  const change = (Math.random() - 0.5) * volatility * basePrice;
-  return Math.round((basePrice + change) * 100) / 100;
+/* ─── Constants ──────────────────────────────────────────── */
+const BG        = '#0B0F19';
+const CARD      = '#111827';
+const ELEVATED  = '#1F2937';
+const BORDER    = '#1F2937';
+const TEXT1     = '#E5E7EB';
+const TEXT2     = '#9CA3AF';
+const TEXT3     = '#6B7280';
+const GREEN     = '#22C55E';
+const RED       = '#EF4444';
+const BLUE      = '#3B82F6';
+const YELLOW    = '#F59E0B';
+
+/* ─── Coin Icons ─────────────────────────────────────────── */
+const COIN_COLORS: Record<string, { bg: string; text: string }> = {
+  BTC:  { bg: '#F7931A', text: '#fff' },
+  ETH:  { bg: '#627EEA', text: '#fff' },
+  SOL:  { bg: '#9945FF', text: '#fff' },
+  BNB:  { bg: '#F3BA2F', text: '#000' },
 };
 
-const basePortfolioData = [
-  { date: '12 AM', value: 100000 },
-  { date: '04 AM', value: 102400 },
-  { date: '08 AM', value: 101200 },
-  { date: '12 PM', value: 105800 },
-  { date: '04 PM', value: 103600 },
-  { date: '08 PM', value: 118400 },
+/* ─── Mock data ──────────────────────────────────────────── */
+const generateMockPrice = (base: number, vol = 0.02) =>
+  Math.round((base + (Math.random() - 0.5) * vol * base) * 100) / 100;
+
+const BASE_CHART = [
+  { t: '12 AM', v: 100000 },
+  { t: '04 AM', v: 102400 },
+  { t: '08 AM', v: 101200 },
+  { t: '12 PM', v: 105800 },
+  { t: '04 PM', v: 103600 },
+  { t: '08 PM', v: 118400 },
 ];
 
-const basePortfolioAssets = [
-  { id: 'BTC', symbol: 'BTC', name: 'Bitcoin', qty: 0.35, buyPrice: 56200, basePrice: 67260.5, pnl: 3887.68, allocation: 19.68, change24h: 2.45 },
-  { id: 'ETH', symbol: 'ETH', name: 'Ethereum', qty: 2.15, buyPrice: 2850, basePrice: 3420.25, pnl: 1226.54, allocation: 20.02, change24h: 1.32 },
-  { id: 'SOL', symbol: 'SOL', name: 'Solana', qty: 10.25, buyPrice: 126.40, basePrice: 165.30, pnl: 398.73, allocation: 30.79, change24h: -1.23 },
-  { id: 'BNB', symbol: 'BNB', name: 'BNB', qty: 1.20, buyPrice: 520, basePrice: 615.40, pnl: 114.48, allocation: 18.35, change24h: 0.85 },
+const ASSETS = [
+  { id: 'BTC', symbol: 'BTC', name: 'Bitcoin',  qty: 0.35, buyPrice: 56200, basePrice: 67260.5, pnl: 3887.68, pnlPct: 19.68, change24h:  2.45 },
+  { id: 'ETH', symbol: 'ETH', name: 'Ethereum', qty: 2.15, buyPrice: 2850,  basePrice: 3420.25,  pnl: 1226.54, pnlPct: 20.02, change24h:  1.32 },
+  { id: 'SOL', symbol: 'SOL', name: 'Solana',   qty: 10.25,buyPrice: 126.4, basePrice: 165.30,   pnl: 398.73,  pnlPct: 30.79, change24h: -1.23 },
+  { id: 'BNB', symbol: 'BNB', name: 'BNB',      qty: 1.20, buyPrice: 520,   basePrice: 615.40,   pnl: 114.48,  pnlPct: 18.35, change24h:  0.85 },
 ];
 
-const signals = [
-  { symbol: 'BTCUSDT', asset: 'Bitcoin', signal: 'BUY', entry: 67250, target: 71500, stopLoss: 64200, confidence: 82, reason: 'Bullish breakout' },
-  { symbol: 'ETHUSDT', asset: 'Ethereum', signal: 'SELL', entry: 3420, target: 3120, stopLoss: 3680, confidence: 76, reason: 'Resistance rejection' },
-  { symbol: 'SOLUSDT', asset: 'Solana', signal: 'BUY', entry: 165.30, target: 178.60, stopLoss: 155.20, confidence: 71, reason: 'Support bounce' },
+const SIGNALS = [
+  { symbol: 'BTC/USDT', asset: 'Bitcoin',  signal: 'BUY',  entry: 67250, target: 71500, stopLoss: 64200, confidence: 82, reason: 'Bullish breakout' },
+  { symbol: 'ETH/USDT', asset: 'Ethereum', signal: 'SELL', entry: 3420,  target: 3120,  stopLoss: 3680,  confidence: 76, reason: 'Resistance rejection' },
+  { symbol: 'SOL/USDT', asset: 'Solana',   signal: 'BUY',  entry: 165.3, target: 178.6, stopLoss: 155.2, confidence: 71, reason: 'Support bounce' },
 ];
 
-const recentNews = [
-  { title: 'Bitcoin ETF sees $200M inflow as market sentiment turns positive', sentiment: 'BULLISH', source: 'CoinDesk', time: '2m ago' },
-  { title: 'Ethereum upgrades show positive impact on network performance', sentiment: 'BULLISH', source: 'Crypto News', time: '1h ago' },
-  { title: 'Solana ecosystem growth continues with new projects launching', sentiment: 'BULLISH', source: 'Blockworks', time: '1h ago' },
+const NEWS = [
+  { title: 'Bitcoin ETF sees $200M inflow as market sentiment turns positive', sentiment: 'BULLISH', source: 'CoinDesk', time: '2m ago', img: '🟡' },
+  { title: 'Ethereum upgrades show positive impact on network performance',     sentiment: 'BULLISH', source: 'Crypto News', time: '15m ago', img: '🔵' },
+  { title: 'Solana ecosystem growth continues with new projects launching',     sentiment: 'BULLISH', source: 'Blockworks', time: '1h ago',  img: '🟣' },
 ];
 
-function CustomTooltip({ active, payload }: any) {
-  if (!active || !payload?.length) return null;
+/* ─── Sub-components ─────────────────────────────────────── */
+
+function StatCard({ label, value, change, positive, children }: any) {
+  // Mini sparkline - simple up/down trend
+  const sparkData = [100, 108, 104, 112, 110, 115];
+  const maxVal = Math.max(...sparkData);
+  const minVal = Math.min(...sparkData);
+  const range = maxVal - minVal || 1;
+
   return (
-    <div className="bg-dark-card border border-dark-border rounded-lg px-3 py-2 text-xs shadow-lg">
-      <p className="text-dark-secondary mb-0.5">{payload[0].payload.date}</p>
-      <p className="text-primary font-semibold">${payload[0].value.toLocaleString()}</p>
-    </div>
-  );
-}
-
-function StatCard({ label, value, change, positive, icon }: any) {
-  return (
-    <div className="card card-hover p-5 flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <p className="text-dark-secondary text-sm font-semibold uppercase tracking-wider">{label}</p>
-        <div className={cn('p-2 rounded-lg', positive ? 'bg-green-900/30' : 'bg-red-900/30')}>
-          {icon}
+    <div
+      style={{ backgroundColor: CARD, borderColor: BORDER }}
+      className="border rounded-2xl p-4 sm:p-5 transition-all duration-200 cursor-default"
+      onMouseEnter={e => {
+        (e.currentTarget as HTMLElement).style.backgroundColor = '#1A2233';
+        (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
+        (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 40px rgba(0,0,0,0.6)';
+      }}
+      onMouseLeave={e => {
+        (e.currentTarget as HTMLElement).style.backgroundColor = CARD;
+        (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+        (e.currentTarget as HTMLElement).style.boxShadow = 'none';
+      }}
+    >
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="flex-1 min-w-0">
+          <p style={{ color: TEXT3 }} className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest mb-2 sm:mb-3">{label}</p>
+          <p style={{ color: TEXT1 }} className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2 truncate">{value}</p>
+          {change && (
+            <p style={{ color: positive ? GREEN : RED }} className="text-xs sm:text-sm font-semibold flex items-center gap-0.5">
+              {positive ? <TrendingUp size={12} className="sm:w-[14px] sm:h-[14px]" /> : <TrendingDown size={12} className="sm:w-[14px] sm:h-[14px]" />}
+              {positive ? '+' : ''}{change}
+            </p>
+          )}
         </div>
+
+        {/* Right side: Sparkline or Circle indicator */}
+        {children ? (
+          <div className="flex-shrink-0">
+            {children}
+          </div>
+        ) : (
+          <svg width="45" height="20" viewBox="0 0 50 24" style={{ marginLeft: '4px' }} className="sm:w-[50px] sm:h-[24px]">
+            <polyline
+              points={sparkData.map((v, i) => `${(i / (sparkData.length - 1)) * 50},${24 - ((v - minVal) / range) * 20}`).join(' ')}
+              fill="none"
+              stroke={positive ? GREEN : RED}
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        )}
       </div>
-      <p className="text-value text-white">{value}</p>
-      {change && (
-        <p className={cn('text-sm font-semibold flex items-center gap-1', positive ? 'text-success' : 'text-danger')}>
-          {positive ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-          {positive ? '+' : ''}{change}
-        </p>
-      )}
     </div>
   );
 }
 
 function SignalCard({ signal }: any) {
-  const isLong = signal.signal === 'BUY';
+  const isBuy = signal.signal === 'BUY';
+  const coin  = COIN_COLORS[signal.asset.slice(0, 3).toUpperCase()] || { bg: BLUE, text: '#fff' };
 
   return (
-    <div className="card card-hover p-4">
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <p className="text-base font-bold text-dark-primary">{signal.symbol}</p>
-            <span className={cn('badge text-[10px] font-bold px-2 py-1 rounded-lg',
-              isLong ? 'badge-buy' : 'badge-sell'
-            )}>
-              {signal.signal}
-            </span>
+    <div
+      style={{ backgroundColor: ELEVATED, borderColor: BORDER }}
+      className="border rounded-2xl p-4 transition-all duration-200"
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = '#263347'; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = ELEVATED; }}
+    >
+      {/* Row 1 */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div style={{ backgroundColor: coin.bg, color: coin.text }}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+            {signal.asset[0]}
           </div>
-          <p className="text-xs text-dark-secondary">{signal.reason}</p>
+          <div>
+            <p style={{ color: TEXT1 }} className="text-sm font-bold leading-none mb-1">{signal.symbol}</p>
+            <p style={{ color: TEXT2 }} className="text-xs">{signal.reason}</p>
+          </div>
         </div>
-        <p className="text-xs font-bold text-primary">{signal.confidence}%</p>
+        <div className="flex items-center gap-2">
+          <span
+            style={isBuy
+              ? { backgroundColor: 'rgba(34,197,94,0.15)', color: GREEN, border: '1px solid rgba(34,197,94,0.3)' }
+              : { backgroundColor: 'rgba(239,68,68,0.15)',  color: RED,   border: '1px solid rgba(239,68,68,0.3)'  }
+            }
+            className="text-[11px] font-bold px-2.5 py-1 rounded-lg"
+          >
+            {signal.signal}
+          </span>
+          <span style={{ color: BLUE }} className="text-sm font-bold">{signal.confidence}%</span>
+        </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 text-xs">
-        <div className="bg-dark-tertiary rounded p-2">
-          <p className="text-dark-secondary mb-1">Entry</p>
-          <p className="font-bold text-dark-primary">${signal.entry.toLocaleString()}</p>
+      {/* Entry / Target / SL */}
+      <div className="grid grid-cols-3 gap-2 mb-3 text-xs">
+        <div style={{ backgroundColor: '#0B0F19' }} className="rounded-xl p-3">
+          <p style={{ color: TEXT3 }} className="mb-1">Entry</p>
+          <p style={{ color: TEXT1 }} className="font-bold">${signal.entry.toLocaleString()}</p>
         </div>
-        <div className="bg-green-900/20 rounded p-2">
-          <p className="text-dark-secondary mb-1">Target</p>
-          <p className="font-bold text-success">${signal.target.toLocaleString()}</p>
+        <div style={{ backgroundColor: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)' }} className="rounded-xl p-3">
+          <p style={{ color: GREEN }} className="mb-1 font-semibold">Target</p>
+          <p style={{ color: GREEN }} className="font-bold">${signal.target.toLocaleString()}</p>
         </div>
-        <div className="bg-red-900/20 rounded p-2">
-          <p className="text-dark-secondary mb-1">Stop Loss</p>
-          <p className="font-bold text-danger">${signal.stopLoss.toLocaleString()}</p>
+        <div style={{ backgroundColor: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }} className="rounded-xl p-3">
+          <p style={{ color: RED }} className="mb-1 font-semibold">Stop Loss</p>
+          <p style={{ color: RED }} className="font-bold">${signal.stopLoss.toLocaleString()}</p>
         </div>
       </div>
 
       {/* Confidence bar */}
-      <div className="mt-3 h-1.5 bg-dark-tertiary rounded-full overflow-hidden">
+      <div style={{ backgroundColor: '#0B0F19' }} className="h-1.5 rounded-full overflow-hidden">
         <div
-          className={cn('h-full', isLong ? 'bg-success' : 'bg-danger')}
-          style={{ width: `${signal.confidence}%` }}
+          style={{ width: `${signal.confidence}%`, backgroundColor: isBuy ? GREEN : RED }}
+          className="h-full rounded-full transition-all"
         />
       </div>
     </div>
   );
 }
 
+/* ─── Main Page ──────────────────────────────────────────── */
 export default function DashboardPage() {
   const { user } = useAuthStore();
   const isPro = user?.role === 'PRO' || user?.role === 'EXPERT';
 
-  const [topMoversPrices, setTopMoversPrices] = useState(basePortfolioAssets.map(a => ({ symbol: a.symbol, name: a.name, basePrice: a.basePrice, price: a.basePrice, change: a.change24h.toFixed(2), up: a.change24h >= 0 })));
   const [totalValue, setTotalValue] = useState(118400);
+  const [assetPrices, setAssetPrices] = useState(
+    ASSETS.map(a => ({ ...a, currentPrice: a.basePrice }))
+  );
 
-  // Real-time updates every 3 seconds
+  /* Real-time updates every 3s */
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      const updated = basePortfolioAssets.map(asset => ({
-        ...asset,
-        currentPrice: generateMockPrice(asset.basePrice, 0.015),
+    const id = setInterval(() => {
+      const updated = ASSETS.map(a => ({
+        ...a,
+        currentPrice: generateMockPrice(a.basePrice, 0.015),
       }));
-      const newTotal = updated.reduce((sum, a) => sum + (a.currentPrice * a.qty), 0);
-      setTotalValue(newTotal);
-
-      const updatedMovers = basePortfolioAssets.map(a => ({
-        symbol: a.symbol,
-        name: a.name,
-        basePrice: a.basePrice,
-        price: generateMockPrice(a.basePrice, 0.02),
-        change: a.change24h.toFixed(2),
-        up: a.change24h >= 0,
-      }));
-      setTopMoversPrices(updatedMovers);
+      setAssetPrices(updated);
+      setTotalValue(updated.reduce((s, a) => s + a.currentPrice * a.qty, 0));
     }, 3000);
-
-    return () => clearInterval(intervalId);
+    return () => clearInterval(id);
   }, []);
 
-  const invested = 100000;
-  const pnl = totalValue - invested;
-  const pnlPct = ((pnl / invested) * 100).toFixed(2);
-  const isUp = pnl >= 0;
+  const invested  = 100000;
+  const pnl       = totalValue - invested;
+  const pnlPct    = ((pnl / invested) * 100).toFixed(2);
+  const isUp      = pnl >= 0;
+
+  /* Win-rate donut (simple inline SVG) */
+  const winRate = 68.6;
 
   return (
-    <div className="min-h-screen p-6" style={{ backgroundColor: '#1f1f2e' }}>
+    <div style={{ backgroundColor: BG }} className="min-h-screen p-4">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-8">
+
+        {/* ── Header ─────────────────────────── */}
+        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-4xl font-bold text-dark-primary">Good morning, John! 👋</h1>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-green-900/30 text-success text-xs font-bold">
-                <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                LIVE
+            <div className="flex items-center gap-3 mb-1">
+              <h1 style={{ color: TEXT1 }} className="text-3xl font-bold">Good morning, John! 👋</h1>
+              <span style={{ backgroundColor: 'rgba(34,197,94,0.15)', color: GREEN, border: '1px solid rgba(34,197,94,0.3)' }}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                LIVE · Market is Open
               </span>
             </div>
-            <p className="text-dark-secondary">Track your portfolio & follow smart trading signals in real-time.</p>
+            <p style={{ color: TEXT2 }} className="text-sm">Track your portfolio & follow smart trading signals in real-time.</p>
           </div>
+
           <div className="flex items-center gap-3">
-            {!isPro && (
-              <Link
-                to="/subscription"
-                className="flex items-center gap-2 px-5 py-3 rounded-xl bg-primary hover:bg-primary-dark text-white text-sm font-bold transition-all"
-              >
-                <Crown size={16} />
-                Upgrade to Pro
-              </Link>
-            )}
-            <button className="p-3 card hover:bg-dark-tertiary text-dark-secondary hover:text-dark-primary transition-all">
-              <Eye size={20} />
+            {/* Add Asset */}
+            <button
+              style={{ backgroundColor: BLUE, color: '#fff' }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = '#2563EB'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = BLUE; }}
+            >
+              <Plus size={16} /> Add Asset
             </button>
+            {/* View Signals */}
+            <Link
+              to="/signals"
+              style={{ backgroundColor: 'rgba(59,130,246,0.15)', color: BLUE, border: `1px solid rgba(59,130,246,0.4)` }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(59,130,246,0.25)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(59,130,246,0.15)'; }}
+            >
+              <Activity size={16} /> View Signals
+            </Link>
+            {!isPro && (
+              <button style={{ backgroundColor: ELEVATED, borderColor: BORDER, color: TEXT2 }}
+                className="border p-2.5 rounded-xl transition-all hover:text-white">
+                <Eye size={18} />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* ── Stat Cards ──────────────────────── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-8">
+          {/* Total Portfolio */}
           <StatCard
-            label="Portfolio Value"
-            value={`$${totalValue.toLocaleString('en-US', { maximumFractionDigits: 2 })}`}
+            label="Total Portfolio Value"
+            value={`$${totalValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}`}
             change={`${pnlPct}%`}
             positive={isUp}
-            icon={<BarChart3 size={20} className={isUp ? 'text-success' : 'text-danger'} />}
-          />
-          <StatCard
-            label="Today's P&L"
-            value={`$${Math.abs(pnl).toLocaleString('en-US', { maximumFractionDigits: 2 })}`}
-            change={`${pnlPct}%`}
-            positive={isUp}
-            icon={<TrendingUp size={20} className={isUp ? 'text-success' : 'text-danger'} />}
-          />
-          <StatCard
-            label="Total Profit"
-            value="$5,430.20"
-            change="28.12%"
-            positive={true}
-            icon={<Activity size={20} className="text-success" />}
-          />
-          <StatCard
-            label="Win Rate"
-            value="68.6%"
-            change=""
-            positive={true}
-            icon={<div className="w-8 h-8 rounded-full border-2 border-success" />}
-          />
+          >
+            <svg width="45" height="22" viewBox="0 0 60 28" style={{ marginTop: '-4px', flexShrink: 0 }} className="sm:w-[60px] sm:h-[28px]">
+              <polyline
+                points="0,20 10,12 20,16 30,8 40,14 50,6 60,10"
+                fill="none"
+                stroke={isUp ? GREEN : RED}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </StatCard>
+
+          {/* Today's P&L */}
+          <StatCard label="Today's P&L" value="$1,250.45" change="5.36%" positive={true}>
+            <svg width="45" height="22" viewBox="0 0 60 28" style={{ marginTop: '-4px', flexShrink: 0 }} className="sm:w-[60px] sm:h-[28px]">
+              <polyline
+                points="0,18 10,14 20,10 30,8 40,6 50,4 60,2"
+                fill="none"
+                stroke={GREEN}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </StatCard>
+
+          {/* Total Profit */}
+          <StatCard label="Total Profit" value="$5,430.20" change="28.12%" positive={true}>
+            <svg width="45" height="22" viewBox="0 0 60 28" style={{ marginTop: '-4px', flexShrink: 0 }} className="sm:w-[60px] sm:h-[28px]">
+              <polyline
+                points="0,22 10,18 20,14 30,10 40,6 50,4 60,2"
+                fill="none"
+                stroke={GREEN}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </StatCard>
+
+          {/* Win Rate - Donut Circle */}
+          <div
+            style={{ backgroundColor: CARD, borderColor: BORDER }}
+            className="border rounded-2xl p-4 sm:p-5 transition-all duration-200 cursor-default"
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.backgroundColor = '#1A2233';
+              (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
+              (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 40px rgba(0,0,0,0.6)';
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.backgroundColor = CARD;
+              (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+              (e.currentTarget as HTMLElement).style.boxShadow = 'none';
+            }}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p style={{ color: TEXT3 }} className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest mb-2 sm:mb-3">Win Rate</p>
+                <p style={{ color: TEXT1 }} className="text-2xl sm:text-3xl font-bold">{winRate}%</p>
+              </div>
+              <svg width="48" height="48" viewBox="0 0 60 60" style={{ marginTop: '-4px', marginRight: '-4px', flexShrink: 0 }} className="sm:w-[60px] sm:h-[60px]">
+                <circle cx="30" cy="30" r="24" fill="none" stroke={ELEVATED} strokeWidth="5" />
+                <circle
+                  cx="30" cy="30" r="24" fill="none" stroke={GREEN} strokeWidth="5"
+                  strokeDasharray={`${(winRate / 100) * 2 * Math.PI * 24} ${2 * Math.PI * 24}`}
+                  strokeLinecap="round"
+                  transform="rotate(-90 30 30)"
+                />
+              </svg>
+            </div>
+          </div>
         </div>
 
-        {/* Main content grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Portfolio Chart - spans 2 columns */}
-          <div className="lg:col-span-2 card p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <p className="text-dark-secondary text-sm font-semibold mb-2">Portfolio Performance</p>
-                <p className="text-4xl font-bold text-dark-primary">${totalValue.toLocaleString('en-US', { maximumFractionDigits: 2 })}</p>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-900/30">
-                <Activity size={14} className="text-success animate-pulse" />
-                <span className="text-xs text-success font-bold">LIVE</span>
-              </div>
-            </div>
+        {/* ── Chart + Signals ─────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
 
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={basePortfolioData}>
-                <defs>
-                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8871ff" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#8871ff" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="date" stroke="#6b7280" style={{ fontSize: '12px' }} />
-                <YAxis hide domain={['auto', 'auto']} />
-                <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="value" stroke="#8871ff" strokeWidth={2.5} fill="url(#colorValue)" dot={false} />
-              </AreaChart>
-            </ResponsiveContainer>
+          {/* Portfolio Chart */}
+          <div className="lg:col-span-2">
+            <PortfolioChart
+              data={BASE_CHART.map(d => ({ time: d.t, value: d.v }))}
+              title="Portfolio Overview"
+              showTimeFilters={true}
+            />
           </div>
 
           {/* Trending Signals */}
-          <div className="card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-dark-primary flex items-center gap-2">
-                <Flame size={16} className="text-warning" />
+          <div style={{ backgroundColor: CARD, borderColor: BORDER }} className="border rounded-2xl p-4 flex flex-col">
+            <div className="flex items-center justify-between mb-5">
+              <h3 style={{ color: TEXT1 }} className="text-sm font-bold flex items-center gap-2">
+                <Flame size={16} style={{ color: YELLOW }} />
                 Trending Signals
               </h3>
-              <Link to="/signals" className="text-primary text-xs font-bold hover:text-primary-light">View All</Link>
+              <Link to="/signals" style={{ color: BLUE }} className="text-xs font-bold hover:opacity-80 transition-opacity">View All</Link>
             </div>
-
-            <div className="space-y-3">
-              {signals.map((signal, i) => (
-                <SignalCard key={i} signal={signal} />
-              ))}
+            <div className="space-y-2 flex-1 overflow-y-auto">
+              {SIGNALS.map((s, i) => <SignalCard key={i} signal={s} />)}
             </div>
           </div>
         </div>
 
-        {/* Your Assets Table */}
-        <div className="card p-6 mb-8">
+        {/* ── Your Assets Table ───────────────── */}
+        <div style={{ backgroundColor: CARD, borderColor: BORDER }} className="border rounded-2xl p-4 mb-6">
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-lg font-bold text-dark-primary">Your Assets</h3>
-            <Link to="/portfolio" className="text-primary text-xs font-bold hover:text-primary-light">Manage Portfolio</Link>
+            <h3 style={{ color: TEXT1 }} className="text-lg font-bold">Your Assets</h3>
+            <Link to="/portfolio" style={{ color: BLUE }} className="text-xs font-semibold hover:opacity-80 transition-opacity">
+              Manage Portfolio
+            </Link>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-dark-border">
-                  <th className="text-left py-3 px-4 text-dark-secondary font-semibold">Asset</th>
-                  <th className="text-right py-3 px-4 text-dark-secondary font-semibold">Qty</th>
-                  <th className="text-right py-3 px-4 text-dark-secondary font-semibold">Avg. Price</th>
-                  <th className="text-right py-3 px-4 text-dark-secondary font-semibold">Current Price</th>
-                  <th className="text-right py-3 px-4 text-dark-secondary font-semibold">24h Change</th>
-                  <th className="text-right py-3 px-4 text-dark-secondary font-semibold">P&L</th>
-                  <th className="text-right py-3 px-4 text-dark-secondary font-semibold">P&L %</th>
+                <tr style={{ borderColor: BORDER }} className="border-b">
+                  {['Asset', 'Qty', 'Avg. Price', 'Current Price', '24h Change', 'P&L', 'P&L %'].map(h => (
+                    <th key={h} style={{ color: TEXT3 }}
+                      className={`py-3 px-4 text-xs font-semibold uppercase tracking-wider ${h === 'Asset' ? 'text-left' : 'text-right'}`}>
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {basePortfolioAssets.map((asset) => (
-                  <tr key={asset.id} className="border-b border-dark-border hover:bg-dark-tertiary/50 transition-all">
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">
-                          {asset.symbol[0]}
+                {assetPrices.map(a => {
+                  const coin = COIN_COLORS[a.symbol] || { bg: BLUE, text: '#fff' };
+                  const livePnl = (a.currentPrice - a.buyPrice) * a.qty;
+                  const livePnlPct = ((a.currentPrice - a.buyPrice) / a.buyPrice * 100).toFixed(2);
+                  return (
+                    <tr
+                      key={a.id}
+                      style={{ borderColor: BORDER }}
+                      className="border-b transition-all duration-150 cursor-pointer"
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = ELEVATED; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
+                    >
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <div style={{ backgroundColor: coin.bg, color: coin.text }}
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                            {a.symbol[0]}
+                          </div>
+                          <div>
+                            <p style={{ color: TEXT1 }} className="font-semibold">{a.symbol}</p>
+                            <p style={{ color: TEXT3 }} className="text-xs">{a.name}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-dark-primary">{asset.symbol}</p>
-                          <p className="text-xs text-dark-secondary">{asset.name}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="text-right py-3 px-4 text-dark-primary font-semibold">{asset.qty}</td>
-                    <td className="text-right py-3 px-4 text-dark-primary font-semibold">${asset.buyPrice.toLocaleString()}</td>
-                    <td className="text-right py-3 px-4 text-dark-primary font-semibold">${asset.basePrice.toLocaleString()}</td>
-                    <td className={cn('text-right py-3 px-4 font-semibold flex items-center justify-end gap-1', asset.change24h >= 0 ? 'text-success' : 'text-danger')}>
-                      {asset.change24h >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                      {Math.abs(asset.change24h).toFixed(2)}%
-                    </td>
-                    <td className={cn('text-right py-3 px-4 font-semibold', asset.pnl >= 0 ? 'text-success' : 'text-danger')}>
-                      ${asset.pnl.toLocaleString()}
-                    </td>
-                    <td className={cn('text-right py-3 px-4 font-semibold', asset.allocation >= 0 ? 'text-success' : 'text-danger')}>
-                      +{asset.allocation.toFixed(2)}%
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td style={{ color: TEXT1 }} className="text-right py-4 px-4 font-semibold">{a.qty}</td>
+                      <td style={{ color: TEXT1 }} className="text-right py-4 px-4 font-semibold">${a.buyPrice.toLocaleString()}</td>
+                      <td style={{ color: TEXT1 }} className="text-right py-4 px-4 font-bold">${a.currentPrice.toLocaleString()}</td>
+                      <td className="text-right py-4 px-4 font-semibold"
+                        style={{ color: a.change24h >= 0 ? GREEN : RED }}>
+                        <span className="flex items-center justify-end gap-1">
+                          {a.change24h >= 0 ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
+                          {Math.abs(a.change24h).toFixed(2)}%
+                        </span>
+                      </td>
+                      <td className="text-right py-4 px-4 font-bold"
+                        style={{ color: livePnl >= 0 ? GREEN : RED }}>
+                        {livePnl >= 0 ? '+' : ''}${livePnl.toLocaleString('en-US', { maximumFractionDigits: 2 })}
+                      </td>
+                      <td className="text-right py-4 px-4 font-bold"
+                        style={{ color: parseFloat(livePnlPct) >= 0 ? GREEN : RED }}>
+                        {parseFloat(livePnlPct) >= 0 ? '+' : ''}{livePnlPct}%
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Bottom Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* ── Bottom Grid ─────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
           {/* Market Overview */}
-          <div className="card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-dark-primary">Market Overview</h3>
-              <Link to="/market" className="text-primary text-xs font-bold">View All</Link>
+          <div style={{ backgroundColor: CARD, borderColor: BORDER }} className="border rounded-2xl p-4">
+            <div className="flex items-center justify-between mb-5">
+              <h3 style={{ color: TEXT1 }} className="text-sm font-bold">Market Overview</h3>
+              <Link to="/market" style={{ color: BLUE }} className="text-xs font-semibold hover:opacity-80">View All</Link>
             </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-dark-tertiary rounded-lg">
-                <span className="text-sm font-semibold text-dark-primary">Top Gainers</span>
-                <span className="text-success font-bold text-xs">+18.75%</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-dark-tertiary rounded-lg">
-                <span className="text-sm font-semibold text-dark-primary">Top Losers</span>
-                <span className="text-danger font-bold text-xs">-14.32%</span>
-              </div>
+            {/* Tab: Gainers / Losers */}
+            <div style={{ backgroundColor: ELEVATED }} className="flex rounded-xl p-1 gap-1 mb-4">
+              {['Top Gainers', 'Top Losers'].map((t, i) => (
+                <button key={t}
+                  style={i === 0 ? { backgroundColor: BLUE, color: '#fff' } : { color: TEXT2 }}
+                  className="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all">
+                  {t}
+                </button>
+              ))}
             </div>
+            {[
+              { sym: 'PEPE/USDT', price: '$0.00001245', pct: '+18.75%', up: true },
+              { sym: 'FLOKI/USDT', price: '$0.0001523', pct: '+14.32%', up: true },
+              { sym: 'PYTH/USDT', price: '$0.4215', pct: '+12.45%', up: true },
+            ].map(m => (
+              <div key={m.sym} style={{ borderColor: BORDER }}
+                className="flex items-center justify-between py-2 border-b last:border-0">
+                <span style={{ color: TEXT1 }} className="text-sm font-semibold">{m.sym}</span>
+                <div className="text-right">
+                  <p style={{ color: TEXT1 }} className="text-xs font-semibold">{m.price}</p>
+                  <p style={{ color: m.up ? GREEN : RED }} className="text-xs font-bold">{m.pct}</p>
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* News Feed */}
-          <div className="card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-dark-primary flex items-center gap-2">
-                <Newspaper size={16} />
-                News
+          {/* News */}
+          <div style={{ backgroundColor: CARD, borderColor: BORDER }} className="border rounded-2xl p-4">
+            <div className="flex items-center justify-between mb-5">
+              <h3 style={{ color: TEXT1 }} className="text-sm font-bold flex items-center gap-2">
+                <Newspaper size={15} /> News
               </h3>
-              <Link to="/news" className="text-primary text-xs font-bold">View All</Link>
+              <Link to="/news" style={{ color: BLUE }} className="text-xs font-semibold hover:opacity-80">View All</Link>
             </div>
-            <div className="space-y-3">
-              {recentNews.map((n, i) => (
-                <Link key={i} to="/news" className="block p-2 rounded hover:bg-dark-tertiary/50 transition-all group">
-                  <p className="text-xs text-dark-secondary line-clamp-2 group-hover:text-dark-primary">{n.title}</p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className={cn('text-[10px] font-bold px-2 py-1 rounded',
-                      n.sentiment === 'BULLISH' ? 'bg-green-900/30 text-success' : 'bg-red-900/30 text-danger'
-                    )}>
-                      {n.sentiment}
-                    </span>
-                    <span className="text-[10px] text-dark-secondary">{n.time}</span>
+            <div className="space-y-1">
+              {NEWS.map((n, i) => (
+                <Link key={i} to="/news"
+                  className="flex items-start gap-3 p-3 rounded-xl transition-all group"
+                  style={{ backgroundColor: 'transparent' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = ELEVATED; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
+                >
+                  <span className="text-2xl flex-shrink-0 mt-0.5">{n.img}</span>
+                  <div className="flex-1 min-w-0">
+                    <p style={{ color: TEXT1 }} className="text-xs font-medium line-clamp-2 mb-1.5">{n.title}</p>
+                    <div className="flex items-center gap-2">
+                      <span style={{ color: TEXT3 }} className="text-[10px]">⏰ {n.time}</span>
+                      <span
+                        style={{
+                          backgroundColor: n.sentiment === 'BULLISH' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                          color: n.sentiment === 'BULLISH' ? GREEN : RED,
+                        }}
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-md"
+                      >
+                        {n.sentiment}
+                      </span>
+                    </div>
                   </div>
                 </Link>
               ))}
             </div>
           </div>
 
-          {/* Watchlist Quick View */}
-          <div className="card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-dark-primary">Watchlist</h3>
-              <Link to="/watchlist" className="text-primary text-xs font-bold">View All</Link>
+          {/* Watchlist */}
+          <div style={{ backgroundColor: CARD, borderColor: BORDER }} className="border rounded-2xl p-4">
+            <div className="flex items-center justify-between mb-5">
+              <h3 style={{ color: TEXT1 }} className="text-sm font-bold">Watchlist</h3>
+              <Link to="/watchlist" style={{ color: BLUE }} className="text-xs font-semibold hover:opacity-80">View All</Link>
             </div>
-            <div className="space-y-2">
-              {topMoversPrices.slice(0, 4).map((m, i) => (
-                <Link key={i} to="/market" className="flex items-center justify-between p-2 rounded hover:bg-dark-tertiary/50 transition-all group">
-                  <div>
-                    <p className="text-sm font-semibold text-dark-primary group-hover:text-primary">{m.symbol}</p>
-                    <p className="text-xs text-dark-secondary">{m.name}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-dark-primary">${m.price.toFixed(2)}</p>
-                    <p className={cn('text-xs font-bold', m.up ? 'text-success' : 'text-danger')}>
-                      {m.up ? '+' : ''}{parseFloat(m.change).toFixed(2)}%
-                    </p>
-                  </div>
-                </Link>
-              ))}
+            <div className="space-y-1">
+              {assetPrices.map((a, i) => {
+                const coin = COIN_COLORS[a.symbol] || { bg: BLUE, text: '#fff' };
+                return (
+                  <Link key={i} to="/market"
+                    className="flex items-center justify-between p-3 rounded-xl transition-all"
+                    style={{ backgroundColor: 'transparent' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = ELEVATED; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div style={{ backgroundColor: coin.bg, color: coin.text }}
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                        {a.symbol[0]}
+                      </div>
+                      <div>
+                        <p style={{ color: TEXT1 }} className="text-sm font-semibold">{a.symbol}</p>
+                        <p style={{ color: TEXT3 }} className="text-xs">{a.name}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p style={{ color: TEXT1 }} className="text-sm font-bold">${a.currentPrice.toLocaleString()}</p>
+                      <p style={{ color: a.change24h >= 0 ? GREEN : RED }} className="text-xs font-bold">
+                        {a.change24h >= 0 ? '+' : ''}{a.change24h.toFixed(2)}%
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );

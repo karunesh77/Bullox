@@ -1,12 +1,21 @@
 import { useState, useEffect } from 'react';
 import { Users, Star, Shield, Zap, Award, ChevronDown, ChevronUp, UserCheck, UserPlus } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
-// Real-time mock data generator
-const generateRandomOffset = (baseValue: number, volatility: number = 0.02): number => {
-  const change = (Math.random() - 0.5) * volatility * baseValue;
-  return Math.round(change * 100) / 100;
-};
+/* ─── Colors ─────────────────────────────────────────── */
+const BG        = '#0B0F19';
+const CARD      = '#111827';
+const ELEVATED  = '#1F2937';
+const BORDER    = '#1F2937';
+const TEXT1     = '#E5E7EB';
+const TEXT2     = '#9CA3AF';
+const TEXT3     = '#6B7280';
+const GREEN     = '#22C55E';
+const RED       = '#EF4444';
+const BLUE      = '#3B82F6';
+const YELLOW    = '#F59E0B';
+
+const generateRandomOffset = (baseValue: number, vol = 0.02) =>
+  Math.round((baseValue + (Math.random() - 0.5) * vol * baseValue) * 100) / 100;
 
 interface Trader {
   id: string;
@@ -28,7 +37,7 @@ interface Trader {
   equity: number;
   baseEquity: number;
   maxDrawdown: number;
-  chart: number[]; // mini sparkline
+  chart: number[];
 }
 
 const MOCK_TRADERS: Trader[] = [
@@ -68,7 +77,7 @@ const MOCK_TRADERS: Trader[] = [
     followers: 8700,
     trades: 3210,
     riskLevel: 'LOW',
-    topSymbols: ['EURUSD', 'BTCUSDT', 'GOLD'],
+    topSymbols: ['EURUSD', 'BTC/USDT', 'GOLD'],
     bio: 'Forex & crypto swing trader. Risk-first approach. CFA Level 2.',
     isFollowing: false,
     equity: 980000,
@@ -90,7 +99,7 @@ const MOCK_TRADERS: Trader[] = [
     followers: 5200,
     trades: 9870,
     riskLevel: 'HIGH',
-    topSymbols: ['SOLUSDT', 'AVAXUSDT', 'NVDA'],
+    topSymbols: ['SOL/USDT', 'AVAX/USDT', 'NVDA'],
     bio: 'Quant algo trader. High frequency crypto + US equities. High risk.',
     isFollowing: false,
     equity: 3800000,
@@ -134,7 +143,7 @@ const MOCK_TRADERS: Trader[] = [
     followers: 9300,
     trades: 5420,
     riskLevel: 'HIGH',
-    topSymbols: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'],
+    topSymbols: ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'],
     bio: 'Full-time crypto trader since 2017. DeFi & altcoin cycles expert.',
     isFollowing: false,
     equity: 1850000,
@@ -142,40 +151,18 @@ const MOCK_TRADERS: Trader[] = [
     maxDrawdown: 22.1,
     chart: [40, 50, 45, 65, 55, 85, 70, 100, 85, 115, 95, 125],
   },
-  {
-    id: '6',
-    name: 'Ananya Joshi',
-    username: '@ananya_options',
-    avatar: 'AJ',
-    badge: 'VERIFIED',
-    returnPercent: 187,
-    baseReturnPercent: 187,
-    returnMonth: 11.3,
-    baseReturnMonth: 11.3,
-    winRate: 72,
-    followers: 6800,
-    trades: 2130,
-    riskLevel: 'MEDIUM',
-    topSymbols: ['NIFTY', 'BANKNIFTY', 'SENSEX'],
-    bio: 'Options & derivatives trader. Indian indices & F&O specialist.',
-    isFollowing: false,
-    equity: 750000,
-    baseEquity: 750000,
-    maxDrawdown: 14.8,
-    chart: [45, 50, 48, 58, 62, 60, 68, 72, 70, 78, 82, 85],
-  },
 ];
 
 const riskConfig = {
-  LOW:    { color: 'text-green-700', bg: 'bg-green-100', border: 'border-green-300', label: 'Low Risk' },
-  MEDIUM: { color: 'text-amber-700', bg: 'bg-amber-100', border: 'border-amber-300', label: 'Med Risk' },
-  HIGH:   { color: 'text-red-700', bg: 'bg-red-100', border: 'border-red-300', label: 'High Risk' },
+  LOW: { color: GREEN, label: 'Low Risk' },
+  MEDIUM: { color: YELLOW, label: 'Med Risk' },
+  HIGH: { color: RED, label: 'High Risk' },
 };
 
 const badgeConfig = {
-  TOP:      { icon: Award,  color: 'text-yellow-700', bg: 'bg-yellow-100', border: 'border-yellow-300', label: 'TOP' },
-  VERIFIED: { icon: Shield, color: 'text-blue-700',   bg: 'bg-blue-100',   border: 'border-blue-300',   label: 'VERIFIED' },
-  PRO:      { icon: Zap,    color: 'text-purple-700', bg: 'bg-purple-100', border: 'border-purple-300', label: 'PRO' },
+  TOP: { icon: Award, color: YELLOW, label: 'TOP' },
+  VERIFIED: { icon: Shield, color: BLUE, label: 'VERIFIED' },
+  PRO: { icon: Zap, color: '#A78BFA', label: 'PRO' },
 };
 
 function Sparkline({ data, up }: { data: number[]; up: boolean }) {
@@ -188,7 +175,7 @@ function Sparkline({ data, up }: { data: number[]; up: boolean }) {
     const y = h - ((v - min) / range) * h;
     return `${x},${y}`;
   }).join(' ');
-  const color = up ? '#22c55e' : '#ef4444';
+  const color = up ? GREEN : RED;
 
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="overflow-visible">
@@ -205,19 +192,21 @@ function TraderCard({ trader, onToggleFollow }: { trader: Trader; onToggleFollow
   const up = trader.returnPercent > 0;
 
   return (
-    <div className={cn(
-      'rounded-2xl border transition-all duration-200 p-5',
-      trader.isFollowing ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-300' : 'bg-white border-gray-200 hover:shadow-lg'
-    )}>
+    <div
+      style={{ backgroundColor: trader.isFollowing ? ELEVATED : CARD, borderColor: BORDER }}
+      className="border rounded-2xl transition-all duration-150 p-4"
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = ELEVATED; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = trader.isFollowing ? ELEVATED : CARD; }}
+    >
       <div className="flex items-start gap-4">
         {/* Avatar */}
         <div className="relative flex-shrink-0">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-100 to-purple-100 border border-gray-300 flex items-center justify-center text-base font-bold text-gray-900">
+          <div style={{ backgroundColor: ELEVATED, color: TEXT1 }} className="w-12 h-12 rounded-xl border border-blue-500 flex items-center justify-center text-sm font-bold">
             {trader.avatar}
           </div>
           {trader.isFollowing && (
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
-              <UserCheck size={10} className="text-white" />
+            <div style={{ backgroundColor: GREEN }} className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center">
+              <UserCheck size={10} style={{ color: '#000' }} />
             </div>
           )}
         </div>
@@ -225,33 +214,33 @@ function TraderCard({ trader, onToggleFollow }: { trader: Trader; onToggleFollow
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span className="text-base font-bold text-gray-900">{trader.name}</span>
+            <span style={{ color: TEXT1 }} className="text-sm font-bold">{trader.name}</span>
             {badge && BadgeIcon && (
-              <span className={cn('flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold border', badge.bg, badge.border, badge.color)}>
+              <span style={{ backgroundColor: 'rgba(59,130,246,0.15)', color: badge.color, border: '1px solid rgba(59,130,246,0.3)' }} className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold">
                 <BadgeIcon size={9} />
                 {badge.label}
               </span>
             )}
           </div>
-          <p className="text-xs text-gray-600 mb-2">{trader.username}</p>
+          <p style={{ color: TEXT3 }} className="text-xs mb-2">{trader.username}</p>
 
           {/* Stats row */}
           <div className="flex items-center gap-4 flex-wrap">
             <div>
-              <p className="text-xs text-gray-600">All-time return</p>
-              <p className={cn('text-lg font-bold', up ? 'text-green-700' : 'text-red-700')}>
+              <p style={{ color: TEXT3 }} className="text-xs mb-0.5">All-time return</p>
+              <p style={{ color: up ? GREEN : RED }} className="text-base font-bold">
                 {up ? '+' : ''}{trader.returnPercent}%
               </p>
             </div>
             <div>
-              <p className="text-xs text-gray-600">This month</p>
-              <p className={cn('text-sm font-semibold', trader.returnMonth >= 0 ? 'text-green-700' : 'text-red-700')}>
+              <p style={{ color: TEXT3 }} className="text-xs mb-0.5">This month</p>
+              <p style={{ color: trader.returnMonth >= 0 ? GREEN : RED }} className="text-sm font-semibold">
                 {trader.returnMonth >= 0 ? '+' : ''}{trader.returnMonth}%
               </p>
             </div>
             <div>
-              <p className="text-xs text-gray-600">Win rate</p>
-              <p className="text-sm font-semibold text-gray-900">{trader.winRate}%</p>
+              <p style={{ color: TEXT3 }} className="text-xs mb-0.5">Win rate</p>
+              <p style={{ color: TEXT1 }} className="text-sm font-semibold">{trader.winRate}%</p>
             </div>
             <div className="ml-auto hidden sm:block">
               <Sparkline data={trader.chart} up={up} />
@@ -261,72 +250,76 @@ function TraderCard({ trader, onToggleFollow }: { trader: Trader; onToggleFollow
       </div>
 
       {/* Bottom row */}
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 flex-wrap gap-3">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className={cn('px-2 py-1 rounded-lg text-xs font-medium border', risk.bg, risk.border, risk.color)}>
-              {risk.label}
-            </span>
-            <span className="text-xs text-gray-700 flex items-center gap-1">
-              <Star size={10} className="text-yellow-500" />
-              {trader.followers.toLocaleString()} followers
-            </span>
-            <div className="flex gap-1">
-              {trader.topSymbols.map(s => (
-                <span key={s} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">{s}</span>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all"
-            >
-              {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </button>
-            <button
-              onClick={() => onToggleFollow(trader.id)}
-              className={cn(
-                'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95',
-                trader.isFollowing
-                  ? 'bg-white text-red-700 hover:bg-red-50 border border-red-300'
-                  : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-lg'
-              )}
-            >
-              {trader.isFollowing ? (
-                <><UserCheck size={14} /> Following</>
-              ) : (
-                <><UserPlus size={14} /> Follow</>
-              )}
-            </button>
+      <div style={{ borderColor: BORDER }} className="flex items-center justify-between mt-4 pt-4 border-t flex-wrap gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <span style={{ backgroundColor: 'rgba(59,130,246,0.15)', color: risk.color, border: '1px solid rgba(59,130,246,0.3)' }} className="px-2 py-1 rounded-lg text-xs font-medium">
+            {risk.label}
+          </span>
+          <span style={{ color: TEXT2 }} className="text-xs flex items-center gap-1">
+            <Star size={11} style={{ color: YELLOW }} />
+            {trader.followers.toLocaleString()} followers
+          </span>
+          <div className="flex gap-1">
+            {trader.topSymbols.map(s => (
+              <span key={s} style={{ backgroundColor: ELEVATED, color: BLUE }} className="text-[10px] font-mono px-1.5 py-0.5 rounded">
+                {s}
+              </span>
+            ))}
           </div>
         </div>
 
-        {/* Expanded details */}
-        {expanded && (
-          <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 p-3 text-center border border-blue-200">
-              <p className="text-xs text-gray-600 mb-1">Total Trades</p>
-              <p className="text-base font-bold text-gray-900">{trader.trades.toLocaleString()}</p>
-            </div>
-            <div className="rounded-xl bg-gradient-to-br from-red-50 to-orange-50 p-3 text-center border border-red-200">
-              <p className="text-xs text-gray-600 mb-1">Max Drawdown</p>
-              <p className="text-base font-bold text-red-700">-{trader.maxDrawdown}%</p>
-            </div>
-            <div className="rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 p-3 text-center border border-purple-200">
-              <p className="text-xs text-gray-600 mb-1">Equity</p>
-              <p className="text-base font-bold text-gray-900">₹{(trader.equity / 100000).toFixed(1)}L</p>
-            </div>
-            <div className="rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 p-3 text-center border border-green-200">
-              <p className="text-xs text-gray-600 mb-1">Win Rate</p>
-              <p className="text-base font-bold text-green-700">{trader.winRate}%</p>
-            </div>
-            <div className="col-span-2 sm:col-span-4 rounded-xl bg-gray-50 p-3 border border-gray-200">
-              <p className="text-xs text-gray-600 mb-1">About</p>
-              <p className="text-sm text-gray-700">{trader.bio}</p>
-            </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setExpanded(!expanded)}
+            style={{ color: TEXT2 }}
+            className="p-2 rounded-lg hover:bg-opacity-50 transition-all"
+          >
+            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+          <button
+            onClick={() => onToggleFollow(trader.id)}
+            style={{
+              backgroundColor: trader.isFollowing ? ELEVATED : BLUE,
+              color: trader.isFollowing ? RED : '#fff',
+              borderColor: trader.isFollowing ? RED : 'transparent',
+              border: trader.isFollowing ? '1px solid' : 'none',
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
+          >
+            {trader.isFollowing ? (
+              <><UserCheck size={13} /> Following</>
+            ) : (
+              <><UserPlus size={13} /> Follow</>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Expanded details */}
+      {expanded && (
+        <div style={{ borderColor: BORDER }} className="mt-4 pt-4 border-t grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div style={{ backgroundColor: ELEVATED }} className="rounded-xl p-3 text-center">
+            <p style={{ color: TEXT3 }} className="text-xs mb-1">Total Trades</p>
+            <p style={{ color: TEXT1 }} className="text-sm font-bold">{trader.trades.toLocaleString()}</p>
           </div>
-        )}
+          <div style={{ backgroundColor: ELEVATED }} className="rounded-xl p-3 text-center">
+            <p style={{ color: TEXT3 }} className="text-xs mb-1">Max Drawdown</p>
+            <p style={{ color: RED }} className="text-sm font-bold">-{trader.maxDrawdown}%</p>
+          </div>
+          <div style={{ backgroundColor: ELEVATED }} className="rounded-xl p-3 text-center">
+            <p style={{ color: TEXT3 }} className="text-xs mb-1">Equity</p>
+            <p style={{ color: TEXT1 }} className="text-sm font-bold">₹{(trader.equity / 100000).toFixed(1)}L</p>
+          </div>
+          <div style={{ backgroundColor: ELEVATED }} className="rounded-xl p-3 text-center">
+            <p style={{ color: TEXT3 }} className="text-xs mb-1">Win Rate</p>
+            <p style={{ color: GREEN }} className="text-sm font-bold">{trader.winRate}%</p>
+          </div>
+          <div style={{ backgroundColor: ELEVATED }} className="col-span-2 sm:col-span-4 rounded-xl p-3">
+            <p style={{ color: TEXT3 }} className="text-xs mb-2">About</p>
+            <p style={{ color: TEXT2 }} className="text-xs">{trader.bio}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -336,9 +329,8 @@ export default function CopyTradingPage() {
   const [filter, setFilter] = useState<'all' | 'following'>('all');
   const [sortBy, setSortBy] = useState<'return' | 'winrate' | 'followers'>('return');
 
-  // Real-time updates for trader returns and equity every 3 seconds
   useEffect(() => {
-    const intervalId = setInterval(() => {
+    const id = setInterval(() => {
       setTraders(prev =>
         prev.map(trader => ({
           ...trader,
@@ -348,8 +340,7 @@ export default function CopyTradingPage() {
         }))
       );
     }, 3000);
-
-    return () => clearInterval(intervalId);
+    return () => clearInterval(id);
   }, []);
 
   const toggleFollow = (id: string) => {
@@ -357,7 +348,6 @@ export default function CopyTradingPage() {
   };
 
   const following = traders.filter(t => t.isFollowing);
-
   const sorted = [...traders]
     .filter(t => filter === 'following' ? t.isFollowing : true)
     .sort((a, b) => {
@@ -367,72 +357,75 @@ export default function CopyTradingPage() {
     });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-purple-50 to-indigo-50 p-6">
+    <div style={{ backgroundColor: BG }} className="min-h-screen p-4">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100">
-                <Users size={24} className="text-purple-700" />
+
+        {/* ── Header ─────────────────────────── */}
+        <div className="mb-6">
+          <div className="flex items-start justify-between mb-4 flex-wrap gap-4">
+            <div className="flex items-center gap-3">
+              <div style={{ backgroundColor: BLUE }} className="p-2.5 rounded-xl">
+                <Users size={20} style={{ color: '#fff' }} />
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Copy Trading</h1>
-                <p className="text-sm text-gray-600">Follow top traders · Mirror their moves</p>
+                <h1 style={{ color: TEXT1 }} className="text-2xl font-bold">Copy Trading</h1>
+                <p style={{ color: TEXT2 }} className="text-sm">Follow top traders · Mirror their moves</p>
               </div>
             </div>
 
             {following.length > 0 && (
-              <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-green-100 to-emerald-100 border border-green-300">
-                <UserCheck size={16} className="text-green-700" />
-                <span className="text-sm text-green-800 font-bold">Following {following.length} trader{following.length > 1 ? 's' : ''}</span>
+              <div style={{ backgroundColor: 'rgba(34,197,94,0.15)', color: GREEN, border: '1px solid rgba(34,197,94,0.3)' }} className="flex items-center gap-2 px-4 py-3 rounded-xl">
+                <UserCheck size={16} />
+                <span className="text-sm font-bold">Following {following.length} trader{following.length > 1 ? 's' : ''}</span>
               </div>
             )}
           </div>
 
           {/* Stats banner */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             {[
-              { label: 'Top Return', value: '+421%', sub: 'Arjun Mehta', color: 'text-green-700' },
-              { label: 'Best Win Rate', value: '79%', sub: 'Sneha Patel', color: 'text-blue-700' },
-              { label: 'Most Followed', value: '15.6K', sub: 'Sneha Patel', color: 'text-purple-700' },
-            ].map((s) => (
-              <div key={s.label} className="rounded-2xl border border-gray-200 bg-white p-4 text-center hover:shadow-md transition-all">
-                <p className="text-xs text-gray-600 font-semibold mb-1">{s.label}</p>
-                <p className={cn('text-2xl font-bold', s.color)}>{s.value}</p>
-                <p className="text-xs text-gray-600 mt-1">{s.sub}</p>
+              { label: 'Top Return', value: '+421%', sub: 'Arjun Mehta', color: GREEN },
+              { label: 'Best Win Rate', value: '79%', sub: 'Sneha Patel', color: BLUE },
+              { label: 'Most Followed', value: '15.6K', sub: 'Sneha Patel', color: YELLOW },
+            ].map(s => (
+              <div key={s.label} style={{ backgroundColor: CARD, borderColor: BORDER }} className="border rounded-xl p-4 text-center">
+                <p style={{ color: TEXT3 }} className="text-xs font-semibold mb-2">{s.label}</p>
+                <p style={{ color: s.color }} className="text-2xl font-bold">{s.value}</p>
+                <p style={{ color: TEXT3 }} className="text-xs mt-2">{s.sub}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Filters & sort */}
+        {/* ── Filters & sort ────────────────────── */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-          <div className="flex gap-2 p-1 bg-white rounded-xl border border-gray-200">
-            {(['all', 'following'] as const).map((f) => (
+          <div style={{ backgroundColor: ELEVATED }} className="flex gap-1 p-1 rounded-xl">
+            {(['all', 'following'] as const).map(f => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={cn(
-                  'px-4 py-2 rounded-lg text-sm font-bold transition-all',
-                  filter === f ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100'
-                )}
+                style={filter === f
+                  ? { backgroundColor: BLUE, color: '#fff' }
+                  : { color: TEXT2 }
+                }
+                className="px-4 py-2 rounded-lg text-sm font-bold transition-all"
               >
                 {f === 'following' ? `Following (${following.length})` : 'All Traders'}
               </button>
             ))}
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-gray-600 font-bold">
-            <span>Sort by:</span>
+          <div className="flex items-center gap-2 text-xs" style={{ color: TEXT3 }}>
+            <span className="font-bold">Sort by:</span>
             {([['return', 'Return'], ['winrate', 'Win Rate'], ['followers', 'Followers']] as const).map(([val, label]) => (
               <button
                 key={val}
                 onClick={() => setSortBy(val)}
-                className={cn(
-                  'px-3 py-2 rounded-lg transition-all text-xs font-bold',
-                  sortBy === val ? 'bg-purple-600 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
-                )}
+                style={sortBy === val
+                  ? { backgroundColor: BLUE, color: '#fff' }
+                  : { backgroundColor: ELEVATED, color: TEXT2, borderColor: BORDER }
+                }
+                className="px-3 py-2 rounded-lg transition-all text-xs font-bold border"
               >
                 {label}
               </button>
@@ -440,22 +433,23 @@ export default function CopyTradingPage() {
           </div>
         </div>
 
-        {/* Traders */}
+        {/* ── Traders List ────────────────────── */}
         {sorted.length === 0 ? (
-          <div className="text-center py-20 text-gray-500">
-            <Users size={40} className="mx-auto mb-3 opacity-30" />
-            <p>Not following anyone yet</p>
-            <button onClick={() => setFilter('all')} className="mt-2 text-sm text-purple-600 hover:text-purple-700 font-bold">
+          <div style={{ backgroundColor: CARD, borderColor: BORDER }} className="border rounded-2xl py-16 px-4 text-center">
+            <Users size={40} style={{ color: TEXT3 }} className="mx-auto mb-3 opacity-50" />
+            <p style={{ color: TEXT2 }} className="text-sm">Not following anyone yet</p>
+            <button onClick={() => setFilter('all')} style={{ color: BLUE }} className="mt-3 text-xs font-bold hover:opacity-80 transition-opacity">
               Browse all traders
             </button>
           </div>
         ) : (
-          <div className="space-y-4">
-            {sorted.map((trader) => (
+          <div className="space-y-3">
+            {sorted.map(trader => (
               <TraderCard key={trader.id} trader={trader} onToggleFollow={toggleFollow} />
             ))}
           </div>
         )}
+
       </div>
     </div>
   );
