@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Plus, Minus, PieChart } from 'lucide-react';
 
 /* ─── Colors ─────────────────────────────────────────── */
@@ -25,29 +25,46 @@ interface Position {
   allocation: number;
 }
 
-const POSITIONS: Position[] = [
+const INITIAL_POSITIONS: Position[] = [
   { id: '1', symbol: 'BTC', name: 'Bitcoin', quantity: 0.35, avgPrice: 56200, currentPrice: 67260.5, category: 'Crypto', categoryColor: '#F7931A', allocation: 35 },
   { id: '2', symbol: 'ETH', name: 'Ethereum', quantity: 2.15, avgPrice: 2850, currentPrice: 3420.25, category: 'Crypto', categoryColor: '#627EEA', allocation: 28 },
   { id: '3', symbol: 'AAPL', name: 'Apple Inc', quantity: 50, avgPrice: 140, currentPrice: 182.45, category: 'Stocks', categoryColor: '#8B5CF6', allocation: 20 },
   { id: '4', symbol: 'MSFT', name: 'Microsoft', quantity: 20, avgPrice: 300, currentPrice: 424.35, category: 'Stocks', categoryColor: '#8B5CF6', allocation: 17 },
 ];
 
+const generateMockPrice = (basePrice: number, vol = 0.015) =>
+  Math.round((basePrice + (Math.random() - 0.5) * vol * basePrice) * 100) / 100;
+
 export default function PortfolioPage() {
+  const [positions, setPositions] = useState<Position[]>(INITIAL_POSITIONS);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
+  /* Real-time price updates every 3 seconds */
+  useEffect(() => {
+    const id = setInterval(() => {
+      setPositions(prev =>
+        prev.map(position => ({
+          ...position,
+          currentPrice: generateMockPrice(position.currentPrice, 0.015),
+        }))
+      );
+    }, 3000);
+    return () => clearInterval(id);
+  }, []);
+
   // Calculate portfolio stats
-  const totalValue = POSITIONS.reduce((sum, p) => sum + (p.currentPrice * p.quantity), 0);
-  const totalInvested = POSITIONS.reduce((sum, p) => sum + (p.avgPrice * p.quantity), 0);
+  const totalValue = positions.reduce((sum, p) => sum + (p.currentPrice * p.quantity), 0);
+  const totalInvested = positions.reduce((sum, p) => sum + (p.avgPrice * p.quantity), 0);
   const totalGain = totalValue - totalInvested;
   const totalGainPct = ((totalGain / totalInvested) * 100).toFixed(2);
   const isPositive = totalGain >= 0;
 
   // Filter positions by category
   const filteredPositions = selectedCategory
-    ? POSITIONS.filter(p => p.category === selectedCategory)
-    : POSITIONS;
+    ? positions.filter(p => p.category === selectedCategory)
+    : positions;
 
-  const categories = [...new Set(POSITIONS.map(p => p.category))];
+  const categories = [...new Set(positions.map(p => p.category))];
 
   return (
     <div style={{ backgroundColor: BG }} className="min-h-screen p-4">
@@ -112,7 +129,7 @@ export default function PortfolioPage() {
             className="border rounded-2xl p-4 sm:p-5 transition-all duration-200 hover:bg-opacity-90"
           >
             <p style={{ color: TEXT3 }} className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest mb-2 sm:mb-3">Asset Count</p>
-            <p style={{ color: TEXT1 }} className="text-2xl sm:text-3xl font-bold mb-2">{POSITIONS.length}</p>
+            <p style={{ color: TEXT1 }} className="text-2xl sm:text-3xl font-bold mb-2">{positions.length}</p>
             <p style={{ color: TEXT3 }} className="text-sm">{categories.length} categories</p>
           </div>
 
@@ -133,10 +150,10 @@ export default function PortfolioPage() {
                   <circle cx="100" cy="100" r="80" fill="none" stroke={ELEVATED} strokeWidth="30" />
 
                   {/* Animated segments */}
-                  {POSITIONS.map((position, index) => {
+                  {positions.map((position, index) => {
                     let offset = 0;
                     for (let i = 0; i < index; i++) {
-                      offset += POSITIONS[i].allocation;
+                      offset += positions[i].allocation;
                     }
                     const circumference = 2 * Math.PI * 80;
                     const segmentLength = (position.allocation / 100) * circumference;
@@ -169,7 +186,7 @@ export default function PortfolioPage() {
 
               {/* Legend */}
               <div className="flex-1 space-y-3">
-                {POSITIONS.map(position => {
+                {positions.map(position => {
                   const value = position.currentPrice * position.quantity;
                   const pct = ((value / totalValue) * 100).toFixed(1);
                   return (
@@ -203,7 +220,7 @@ export default function PortfolioPage() {
               <div>
                 <p style={{ color: TEXT3 }} className="text-xs font-semibold uppercase mb-2">Best Performer</p>
                 {(() => {
-                  const best = POSITIONS.reduce((prev, curr) => {
+                  const best = positions.reduce((prev, curr) => {
                     const prevGain = (curr.currentPrice - curr.avgPrice) / curr.avgPrice;
                     const currGain = (prev.currentPrice - prev.avgPrice) / prev.avgPrice;
                     return prevGain > currGain ? curr : prev;
@@ -221,7 +238,7 @@ export default function PortfolioPage() {
               <div>
                 <p style={{ color: TEXT3 }} className="text-xs font-semibold uppercase mb-2">Most Holdings</p>
                 {(() => {
-                  const most = POSITIONS.reduce((prev, curr) => curr.quantity > prev.quantity ? curr : prev);
+                  const most = positions.reduce((prev, curr) => curr.quantity > prev.quantity ? curr : prev);
                   return (
                     <div style={{ backgroundColor: ELEVATED }} className="rounded-lg p-3">
                       <p style={{ color: TEXT1 }} className="font-bold text-sm">{most.symbol}</p>
