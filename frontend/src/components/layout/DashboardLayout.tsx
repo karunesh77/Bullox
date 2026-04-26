@@ -3,8 +3,8 @@ import { Outlet, NavLink } from 'react-router-dom';
 import Topbar from './Topbar';
 import { cn } from '@/lib/utils';
 import {
-  TrendingUp, LayoutDashboard, BarChart3, BookMarked, Newspaper,
-  Calendar, Bell, Users, Settings, ChevronRight, Menu, X
+  LayoutDashboard, BarChart3, BookMarked, Newspaper,
+  Calendar, Bell, Users, Settings, ChevronRight, Menu, X, TrendingUp
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -111,13 +111,12 @@ export default function DashboardLayout() {
           </button>
 
           {/* Logo */}
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ backgroundColor: '#3B82F6' }}
-          >
-            <TrendingUp size={16} className="text-white" />
-          </div>
-          <span className="text-lg font-bold" style={{ color: '#E5E7EB' }}>BullOx</span>
+          <img
+            src="/bullox-logo.svg"
+            alt="Bullox"
+            className="w-8 h-8"
+          />
+          <span className="text-lg font-bold" style={{ color: '#E5E7EB' }}>Bullox</span>
         </div>
 
         {/* Right */}
