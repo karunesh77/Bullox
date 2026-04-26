@@ -1,54 +1,72 @@
-import { Link } from 'react-router-dom';
-import { TrendingUp } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { cn } from '@/lib/utils';
+﻿import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
+
+const CARD = '#111827';
+const BORDER = '#1F2937';
+const TEXT1 = '#E5E7EB';
+const TEXT2 = '#9CA3AF';
+const BLUE = '#3B82F6';
 
 export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
+  const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  const navLinks = [
+    { label: 'Features', href: '#features' },
+    { label: 'Pricing', href: '#pricing' },
+    { label: 'About', href: '#about' },
+  ];
 
   return (
-    <header className={cn(
-      'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-      scrolled
-        ? 'bg-gray-950/80 backdrop-blur-md border-b border-gray-800'
-        : 'bg-transparent border-b border-transparent'
-    )}>
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <TrendingUp size={24} className="text-green-400" />
-          <span className="text-xl font-bold text-white tracking-tight">Bullox</span>
-        </Link>
-
-        {/* Center nav */}
-        <nav className="hidden md:flex items-center gap-8">
-          <a href="/#features" className="text-sm text-gray-300 hover:text-white transition-colors">Features</a>
-          <a href="/#pricing" className="text-sm text-gray-300 hover:text-white transition-colors">Pricing</a>
-          <Link to="/market" className="text-sm text-gray-300 hover:text-white transition-colors">Markets</Link>
-        </nav>
-
-        {/* Right */}
-        <div className="flex items-center gap-3">
-          <Link
-            to="/login"
-            className="text-sm text-gray-300 hover:text-white transition-colors hidden sm:block"
-          >
-            Sign in
-          </Link>
-          <Link
-            to="/register"
-            className="bg-green-500 text-gray-950 text-sm font-semibold px-4 py-2 rounded-lg hover:bg-green-400 active:scale-95 transition-all"
-          >
-            Get Started
-          </Link>
+    <nav style={{ backgroundColor: CARD, borderColor: BORDER }} className="border-b sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+          <img src="/bullox-logo.svg" alt="Bullox" className="w-8 h-8" />
+          <span className="text-xl font-bold" style={{ color: TEXT1 }}>Bullox</span>
         </div>
+
+        <div className="hidden md:flex items-center gap-8">
+          {navLinks.map((link) => (
+            <a key={link.label} href={link.href} style={{ color: TEXT2 }} className="hover:text-white transition text-sm font-medium">
+              {link.label}
+            </a>
+          ))}
+        </div>
+
+        <div className="hidden sm:flex gap-3 items-center">
+          <button onClick={() => navigate('/dashboard')} style={{ borderColor: BLUE, color: BLUE }} className="px-4 py-2 rounded-lg border transition-all hover:bg-opacity-10">
+            Sign In
+          </button>
+          <button onClick={() => navigate('/dashboard')} style={{ backgroundColor: BLUE }} className="px-4 py-2 rounded-lg text-white font-semibold transition-all hover:opacity-90">
+            Get Started
+          </button>
+        </div>
+
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 rounded-lg" style={{ backgroundColor: 'rgba(59,130,246,0.15)', color: BLUE }}>
+          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
       </div>
-    </header>
+
+      {mobileMenuOpen && (
+        <div style={{ backgroundColor: CARD, borderColor: BORDER }} className="border-t md:hidden">
+          <div className="px-4 py-4 space-y-3">
+            {navLinks.map((link) => (
+              <a key={link.label} href={link.href} style={{ color: TEXT2 }} className="block py-2 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>
+                {link.label}
+              </a>
+            ))}
+            <div className="flex gap-2 pt-2">
+              <button onClick={() => navigate('/dashboard')} style={{ borderColor: BLUE, color: BLUE }} className="flex-1 px-4 py-2 rounded-lg border transition-all text-sm">
+                Sign In
+              </button>
+              <button onClick={() => navigate('/dashboard')} style={{ backgroundColor: BLUE }} className="flex-1 px-4 py-2 rounded-lg text-white font-semibold transition-all text-sm">
+                Get Started
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </nav>
   );
 }

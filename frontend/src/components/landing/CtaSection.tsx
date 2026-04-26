@@ -1,33 +1,23 @@
-import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+﻿import { ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+const BORDER = "#1F2937";
+const TEXT1 = "#E5E7EB";
+const TEXT2 = "#9CA3AF";
+const BLUE = "#3B82F6";
 
 export default function CtaSection() {
-  return (
-    <section className="relative py-24 border-t border-gray-900">
-      <div className="max-w-4xl mx-auto px-6">
-        <div className="relative rounded-3xl border border-gray-800 bg-gradient-to-br from-gray-900 via-gray-950 to-gray-900 p-12 md:p-16 text-center overflow-hidden">
-          {/* Glow */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-green-500/10 rounded-full blur-3xl" />
-          </div>
+  const navigate = useNavigate();
 
-          <div className="relative">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
-              Ready to trade smarter?
-            </h2>
-            <p className="text-lg text-gray-400 mb-8 max-w-xl mx-auto">
-              Join thousands of traders already using Bullox to track markets and copy experts.
-            </p>
-            <Link
-              to="/register"
-              className="group inline-flex items-center gap-2 bg-green-500 text-gray-950 font-semibold px-7 py-3.5 rounded-xl hover:bg-green-400 active:scale-95 transition-all"
-            >
-              Start Free Today
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <p className="text-xs text-gray-600 mt-4">No credit card · No commitment</p>
-          </div>
-        </div>
+  return (
+    <section className="py-16">
+      <div style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(34,197,94,0.1) 100%)", borderColor: BORDER }} className="max-w-4xl mx-auto border rounded-2xl p-12 text-center">
+        <h2 className="text-3xl font-bold mb-4" style={{ color: TEXT1 }}>Ready to Start Trading?</h2>
+        <p style={{ color: TEXT2 }} className="text-lg mb-8 max-w-2xl mx-auto">Join thousands of traders using Bullox to make smarter trading decisions every day. Get started for free today.</p>
+        <button onClick={() => navigate("/dashboard")} style={{ backgroundColor: BLUE }} className="px-8 py-3 rounded-lg text-white font-semibold transition-all hover:opacity-90 flex items-center justify-center gap-2 mx-auto">
+          Get Started Free
+          <ArrowRight size={18} />
+        </button>
       </div>
     </section>
   );

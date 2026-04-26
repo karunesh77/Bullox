@@ -1,123 +1,49 @@
-import { Link } from 'react-router-dom';
-import { Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
+﻿import { useNavigate } from "react-router-dom";
 
-const plans = [
-  {
-    name: 'Free',
-    price: '₹0',
-    period: 'forever',
-    desc: 'Perfect to get started with Bullox.',
-    features: [
-      'Live market data (stocks + crypto)',
-      'Up to 3 watchlists (20 symbols each)',
-      'Up to 10 price alerts',
-      'AI news feed',
-      'Economic calendar',
-    ],
-    cta: 'Get Started',
-    link: '/register',
-    popular: false,
-  },
-  {
-    name: 'Pro',
-    price: '₹999',
-    period: 'per month',
-    yearly: '₹7,999 / year',
-    desc: 'For serious traders who need unlimited power.',
-    features: [
-      'Everything in Free',
-      'Unlimited watchlists & alerts',
-      'Copy trading (follow experts)',
-      'Priority data feeds',
-      'Advanced AI sentiment analysis',
-      'Email + push notifications',
-      'Priority support',
-    ],
-    cta: 'Upgrade to Pro',
-    link: '/register',
-    popular: true,
-  },
+const BG = "#0B0F19";
+const CARD = "#111827";
+const BORDER = "#1F2937";
+const TEXT1 = "#E5E7EB";
+const TEXT2 = "#9CA3AF";
+const GREEN = "#22C55E";
+const BLUE = "#3B82F6";
+
+const pricing = [
+  { name: "Free", price: "$0", period: "Forever free", features: ["Basic signals", "Portfolio tracking", "Market data", "Community support"], highlighted: false },
+  { name: "Pro", price: "$29", period: "Per month", features: ["Premium signals", "Advanced analytics", "Real-time alerts", "Email support", "Copy trading"], highlighted: true },
+  { name: "Elite", price: "$99", period: "Per month", features: ["All Pro features", "API access", "Custom alerts", "Priority support", "Portfolio management"], highlighted: false },
 ];
 
 export default function Pricing() {
+  const navigate = useNavigate();
+
   return (
-    <section id="pricing" className="relative py-24 md:py-32 border-t border-gray-900">
-      <div className="max-w-5xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
-            Simple pricing.<br />
-            <span className="text-gray-500">No surprises.</span>
-          </h2>
-          <p className="text-lg text-gray-400">
-            Start free. Upgrade when you're ready.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {plans.map((plan) => (
-            <div
-              key={plan.name}
-              className={cn(
-                'relative rounded-2xl p-8 transition-all duration-300',
-                plan.popular
-                  ? 'border-2 border-green-500/40 bg-gradient-to-br from-green-500/5 to-transparent'
-                  : 'border border-gray-800 bg-gray-900/50'
-              )}
-            >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-gray-950 text-xs font-bold px-3 py-1 rounded-full">
-                  MOST POPULAR
-                </div>
-              )}
-
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold text-white mb-1">{plan.name}</h3>
-                <p className="text-sm text-gray-400">{plan.desc}</p>
+    <section id="pricing" style={{ backgroundColor: CARD }} className="py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4" style={{ color: TEXT1 }}>Simple, Transparent Pricing</h2>
+        <p style={{ color: TEXT2 }} className="text-center max-w-2xl mx-auto mb-16">Choose the perfect plan for your trading needs. All plans include access to our core trading features.</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {pricing.map((plan, idx) => (
+            <div key={idx} style={{ backgroundColor: BG, borderColor: plan.highlighted ? BLUE : BORDER }} className={`border-2 rounded-xl p-8 transition-all ${plan.highlighted ? "md:scale-105" : ""}`}>
+              <h3 className="text-2xl font-bold mb-2" style={{ color: TEXT1 }}>{plan.name}</h3>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="text-4xl font-bold" style={{ color: BLUE }}>{plan.price}</span>
+                <span style={{ color: TEXT2 }} className="text-sm">{plan.period}</span>
               </div>
-
-              <div className="mb-6">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-bold text-white">{plan.price}</span>
-                  <span className="text-sm text-gray-500">/ {plan.period}</span>
-                </div>
-                {plan.yearly && (
-                  <p className="text-xs text-green-400 mt-1">or {plan.yearly} — save 33%</p>
-                )}
-              </div>
-
-              <Link
-                to={plan.link}
-                className={cn(
-                  'block w-full text-center font-semibold px-5 py-3 rounded-xl transition-all mb-8',
-                  plan.popular
-                    ? 'bg-green-500 text-gray-950 hover:bg-green-400 active:scale-95'
-                    : 'border border-gray-700 text-white hover:bg-gray-800 hover:border-gray-600'
-                )}
-              >
-                {plan.cta}
-              </Link>
-
-              <ul className="space-y-3">
-                {plan.features.map((f) => (
-                  <li key={f} className="flex items-start gap-3 text-sm">
-                    <span className={cn(
-                      'w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5',
-                      plan.popular ? 'bg-green-500/20' : 'bg-gray-800'
-                    )}>
-                      <Check size={12} className={plan.popular ? 'text-green-400' : 'text-gray-400'} />
-                    </span>
-                    <span className="text-gray-300">{f}</span>
+              <p style={{ color: TEXT2 }} className="mb-6 text-sm">Get started with {plan.name}</p>
+              <ul className="mb-8 space-y-3">
+                {plan.features.map((feat, i) => (
+                  <li key={i} style={{ color: TEXT2 }} className="flex items-center gap-2 text-sm">
+                    <span style={{ color: GREEN }}>✓</span> {feat}
                   </li>
                 ))}
               </ul>
+              <button onClick={() => navigate("/dashboard")} style={{ backgroundColor: BLUE }} className="w-full py-2.5 rounded-lg text-white font-semibold transition-all hover:opacity-90">
+                {plan.price === "$0" ? "Get Started" : "Start Free Trial"}
+              </button>
             </div>
           ))}
         </div>
-
-        <p className="text-center text-xs text-gray-600 mt-12">
-          All prices in INR. Cancel anytime. Secure payments via Razorpay.
-        </p>
       </div>
     </section>
   );

@@ -1,83 +1,38 @@
-import { TrendingUp, Newspaper, Bell, Users, Calendar, BookMarked } from 'lucide-react';
+﻿import { TrendingUp, BarChart3, Shield, Users, Calendar } from "lucide-react";
+
+const BG = "#0B0F19";
+const CARD = "#111827";
+const BORDER = "#1F2937";
+const TEXT1 = "#E5E7EB";
+const TEXT2 = "#9CA3AF";
+const BLUE = "#3B82F6";
 
 const features = [
-  {
-    icon: TrendingUp,
-    title: 'Live Market Data',
-    desc: 'Real-time prices for stocks, forex, and crypto from Finnhub, CoinGecko, and more. Zero delay.',
-    color: 'text-green-400',
-    bg: 'bg-green-500/10',
-    border: 'border-green-500/20',
-  },
-  {
-    icon: Newspaper,
-    title: 'AI News Sentiment',
-    desc: 'Every news article analyzed by Claude AI for sentiment, impact, and affected symbols.',
-    color: 'text-purple-400',
-    bg: 'bg-purple-500/10',
-    border: 'border-purple-500/20',
-  },
-  {
-    icon: Bell,
-    title: 'Smart Price Alerts',
-    desc: 'Set alerts for price levels or % changes. Instant notifications when your condition triggers.',
-    color: 'text-yellow-400',
-    bg: 'bg-yellow-500/10',
-    border: 'border-yellow-500/20',
-  },
-  {
-    icon: BookMarked,
-    title: 'Custom Watchlists',
-    desc: 'Organize symbols into multiple watchlists. Track everything you care about, nothing you don\'t.',
-    color: 'text-blue-400',
-    bg: 'bg-blue-500/10',
-    border: 'border-blue-500/20',
-  },
-  {
-    icon: Users,
-    title: 'Copy Trading',
-    desc: 'Follow top-performing traders. Mirror their moves with one click. Learn while you earn.',
-    color: 'text-pink-400',
-    bg: 'bg-pink-500/10',
-    border: 'border-pink-500/20',
-  },
-  {
-    icon: Calendar,
-    title: 'Economic Calendar',
-    desc: 'Never miss an NFP, CPI, or FOMC. High-impact events flagged before they move markets.',
-    color: 'text-orange-400',
-    bg: 'bg-orange-500/10',
-    border: 'border-orange-500/20',
-  },
+  { icon: TrendingUp, title: "AI Trading Signals", desc: "Get intelligent BUY/SELL recommendations powered by advanced algorithms" },
+  { icon: BarChart3, title: "Real-time Analytics", desc: "Track your portfolio performance with detailed charts and metrics" },
+  { icon: TrendingUp, title: "Market Intelligence", desc: "Live market data, economic calendar, and news aggregation" },
+  { icon: Shield, title: "Risk Management", desc: "Set stop losses, take profits, and manage risk effectively" },
+  { icon: Users, title: "Copy Trading", desc: "Follow and copy trades from expert and professional traders" },
+  { icon: Calendar, title: "Economic Calendar", desc: "Global economic events and their market impact at a glance" },
 ];
 
 export default function Features() {
   return (
-    <section id="features" className="relative py-24 md:py-32">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
-            Everything you need.<br />
-            <span className="text-gray-500">Nothing you don't.</span>
-          </h2>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            Built for traders who value clarity, speed, and data-driven decisions.
-          </p>
-        </div>
-
+    <section id="features" style={{ backgroundColor: CARD }} className="py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4" style={{ color: TEXT1 }}>Powerful Features Built for Traders</h2>
+        <p style={{ color: TEXT2 }} className="text-center max-w-2xl mx-auto mb-16">Everything you need to make informed trading decisions and manage your portfolio professionally.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map(({ icon: Icon, title, desc, color, bg, border }) => (
-            <div
-              key={title}
-              className="group rounded-2xl border border-gray-800 bg-gray-900/50 p-6 hover:bg-gray-900 hover:border-gray-700 transition-all duration-300"
-            >
-              <div className={`w-12 h-12 rounded-xl ${bg} border ${border} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                <Icon size={22} className={color} />
+          {features.map((feat, idx) => {
+            const Icon = feat.icon;
+            return (
+              <div key={idx} style={{ backgroundColor: BG, borderColor: BORDER }} className="border rounded-xl p-6 transition-all hover:border-blue-500 hover:translate-y-[-4px]">
+                <Icon size={32} style={{ color: BLUE }} className="mb-4" />
+                <h3 className="text-lg font-bold mb-2" style={{ color: TEXT1 }}>{feat.title}</h3>
+                <p style={{ color: TEXT2 }} className="text-sm">{feat.desc}</p>
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
-              <p className="text-sm text-gray-400 leading-relaxed">{desc}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

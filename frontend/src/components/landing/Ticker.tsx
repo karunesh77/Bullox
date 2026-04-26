@@ -1,43 +1,53 @@
-import { TrendingUp, TrendingDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
+﻿import { useState, useEffect } from "react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
-const tickerItems = [
-  { symbol: 'AAPL', price: '213.18', change: -0.54 },
-  { symbol: 'TSLA', price: '192.30', change: 2.81 },
-  { symbol: 'NVDA', price: '875.40', change: 4.23 },
-  { symbol: 'BTCUSDT', price: '76,243', change: 1.93 },
-  { symbol: 'ETHUSDT', price: '2,332', change: -1.20 },
-  { symbol: 'MSFT', price: '428.72', change: 0.85 },
-  { symbol: 'GOOGL', price: '168.50', change: 1.34 },
-  { symbol: 'AMZN', price: '215.40', change: -0.20 },
-  { symbol: 'META', price: '602.18', change: 2.14 },
-  { symbol: 'SOLUSDT', price: '183.40', change: 5.67 },
-];
+const CARD = "#111827";
+const BORDER = "#1F2937";
+const TEXT1 = "#E5E7EB";
+const TEXT2 = "#9CA3AF";
+const GREEN = "#22C55E";
+const RED = "#EF4444";
 
-// Duplicate for seamless loop
-const items = [...tickerItems, ...tickerItems];
+const generateMockPrice = (basePrice: number): number => Math.round((basePrice + (Math.random() - 0.5) * basePrice * 0.015) * 100) / 100;
 
 export default function Ticker() {
+  const [prices, setPrices] = useState([
+    { symbol: "BTC/USDT", basePrice: 67500, change: 2.4 },
+    { symbol: "ETH/USDT", basePrice: 3420, change: -1.2 },
+    { symbol: "SOL/USDT", basePrice: 165, change: 5.6 },
+    { symbol: "BNB/USDT", basePrice: 610, change: 2.1 },
+  ]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPrices(prev => prev.map(p => ({ ...p, basePrice: generateMockPrice(p.basePrice) })));
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="border-y border-gray-800 bg-gray-900/50 backdrop-blur-sm overflow-hidden py-3">
-      <div className="flex gap-8 animate-ticker whitespace-nowrap">
-        {items.map((item, i) => {
-          const up = item.change >= 0;
-          return (
-            <div key={i} className="flex items-center gap-2 flex-shrink-0">
-              <span className="text-sm font-semibold text-white">{item.symbol}</span>
-              <span className="text-sm text-gray-400">${item.price}</span>
-              <span className={cn(
-                'text-xs font-medium flex items-center gap-0.5',
-                up ? 'text-green-400' : 'text-red-400'
-              )}>
-                {up ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                {up ? '+' : ''}{item.change.toFixed(2)}%
-              </span>
-            </div>
-          );
-        })}
+    <section style={{ backgroundColor: CARD, borderColor: BORDER }} className="border-y py-6 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex overflow-x-auto gap-6 pb-2">
+          {prices.map(item => {
+            const isPositive = item.change >= 0;
+            return (
+              <div key={item.symbol} className="flex-shrink-0 flex items-center gap-3">
+                <div>
+                  <p style={{ color: TEXT1 }} className="text-sm font-semibold">{item.symbol}</p>
+                  <p style={{ color: TEXT2 }} className="text-sm">${item.basePrice.toLocaleString()}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  {isPositive ? <TrendingUp size={16} style={{ color: GREEN }} /> : <TrendingDown size={16} style={{ color: RED }} />}
+                  <span style={{ color: isPositive ? GREEN : RED }} className="text-sm font-semibold">
+                    {isPositive ? "+" : ""}{item.change}%
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
