@@ -1,5 +1,6 @@
 ﻿import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import AnimatedBackground from './AnimatedBackground';
 
 const TEXT2 = '#9CA3AF';
 const TEXT3 = '#6B7280';
@@ -30,10 +31,11 @@ export default function Hero() {
         </div>
         <p style={{ color: TEXT3 }} className="text-sm mt-6">✓ No credit card required • ✓ Free forever plan • ✓ Cancel anytime</p>
       </div>
-      <div style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(34,197,94,0.1) 100%)', borderColor: '#1F2937' }} className="border rounded-2xl p-8 flex items-center justify-center min-h-96">
-        <div className="text-center">
+      <div style={{ borderColor: '#1F2937', background: '#0B0F19' }} className="border rounded-2xl p-8 flex items-center justify-center min-h-96 relative overflow-hidden">
+        <AnimatedBackground />
+        <div className="text-center relative z-10">
           <div className="text-6xl mb-4">📊</div>
-          <p style={{ color: TEXT2 }}>Professional Trading Dashboard</p>
+          <p style={{ color: TEXT2 }} className="font-semibold">Professional Trading Dashboard</p>
         </div>
       </div>
     </section>
