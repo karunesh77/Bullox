@@ -60,7 +60,7 @@ const TimeFilterButton = ({
         ? { backgroundColor: '#3B82F6', color: '#fff' }
         : { backgroundColor: 'transparent', color: '#9CA3AF', borderColor: '#1F2937' }
       }
-      className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 border ${
+      className={`px-2.5 sm:px-3.5 py-1.5 text-[11px] sm:text-xs font-semibold rounded-lg transition-all duration-200 border whitespace-nowrap ${
         isActive ? 'border-blue-500' : 'border-transparent'
       } hover:text-white`}
       onMouseEnter={e => {
@@ -106,8 +106,8 @@ export default function PortfolioChart({
       className="border rounded-2xl p-5 transition-all duration-200"
     >
       {/* ── Header ────────────────────────────────── */}
-      <div className="flex items-start justify-between mb-6">
-        <div className="flex-1">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+        <div className="flex-1 min-w-0">
           {/* Title and Subtitle */}
           <div className="mb-1">
             <p style={{ color: '#9CA3AF' }} className="text-xs font-semibold uppercase tracking-wider">
@@ -116,8 +116,8 @@ export default function PortfolioChart({
           </div>
 
           {/* Current Value */}
-          <div className="flex items-baseline gap-3">
-            <p style={{ color: '#E5E7EB' }} className="text-3xl font-bold">
+          <div className="flex items-baseline gap-3 flex-wrap">
+            <p style={{ color: '#E5E7EB' }} className="text-2xl sm:text-3xl font-bold">
               ${currentValue.toLocaleString('en-US', { maximumFractionDigits: 2 })}
             </p>
             <p
@@ -140,7 +140,7 @@ export default function PortfolioChart({
         {showTimeFilters && (
           <div
             style={{ backgroundColor: '#0B0F19' }}
-            className="flex items-center gap-2 px-2 py-1.5 rounded-xl flex-shrink-0"
+            className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-xl flex-shrink-0 overflow-x-auto sm:overflow-x-visible"
           >
             {timeFilters.map(filter => (
               <TimeFilterButton

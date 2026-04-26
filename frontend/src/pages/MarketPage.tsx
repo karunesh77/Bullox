@@ -218,7 +218,7 @@ export default function MarketPage() {
           {/* ── Right: Chart ────────────────────── */}
           <div className="flex-1 flex flex-col gap-3">
             {/* Interval Buttons */}
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-1.5 sm:gap-2 flex-wrap">
               {INTERVALS.map(i => (
                 <button
                   key={i.value}
@@ -227,7 +227,7 @@ export default function MarketPage() {
                     ? { backgroundColor: BLUE, color: '#fff' }
                     : { backgroundColor: CARD, borderColor: BORDER, color: TEXT2 }
                   }
-                  className="px-3 py-1.5 rounded-lg text-xs font-bold border transition-all"
+                  className="px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold border transition-all hover:text-white"
                 >
                   {i.label}
                 </button>
