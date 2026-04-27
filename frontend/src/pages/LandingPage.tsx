@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import Navbar from '@/components/landing/Navbar';
-import Hero from '@/components/landing/Hero';
+import HeroNew from '@/components/landing/HeroNew';
 import Ticker from '@/components/landing/Ticker';
 import Features from '@/components/landing/Features';
 import Pricing from '@/components/landing/Pricing';
@@ -15,10 +15,10 @@ export default function LandingPage() {
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-slate-950 text-white">
       <Navbar />
       <main>
-        <Hero />
+        <HeroNew />
         <Ticker />
         <Features />
         <Pricing />

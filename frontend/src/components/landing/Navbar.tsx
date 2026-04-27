@@ -19,7 +19,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav style={{ backgroundColor: CARD, borderColor: BORDER }} className="border-b sticky top-0 z-50">
+    <nav className="backdrop-blur-lg bg-slate-950/80 border-b border-white/10 sticky top-0 z-50" style={{ boxShadow: "0 0 20px rgba(59, 130, 246, 0.1)" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
           <img src="/bullox-logo.svg" alt="Bullox" className="w-8 h-8" />
